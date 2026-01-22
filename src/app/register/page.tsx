@@ -9,7 +9,7 @@ import { Separator } from '@/app/dashboard/FamilyTreeBuilder/ui/separator';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Phone, ArrowLeft, Check } from 'lucide-react';
+import { Mail, Phone, ArrowLeft, Check, Eye, EyeOff } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -20,6 +20,7 @@ const Register = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const { signUp, user } = useAuth();
   const router = useRouter();
@@ -42,6 +43,22 @@ const Register = () => {
       return;
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Phone validation (if provided)
+    if (phone) {
+      const phoneRegex = /^[+]?[0-9]{10,15}$/;
+      if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+        toast.error("Please enter a valid phone number");
+        return;
+      }
+    }
+
     setLoading(true);
     const { error } = await signUp(email, password, { first_name: firstName, last_name: lastName });
 
@@ -55,17 +72,17 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F5F2E9] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back to home */}
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-kutumba-maroon mb-6 transition-colors" style={{ color: '#64303A' }}>
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 mb-6 transition-colors">
           <ArrowLeft className="h-4 w-4" />
           Back to KutumbaTree
         </Link>
 
         <Card className="border-2 shadow-lg" style={{ borderColor: '#d4c5cb' }}>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl" style={{ color: '#64303A' }}>Start Your Heritage Journey</CardTitle>
+            <CardTitle className="text-2xl font-bold" style={{ color: '#64303A' }}>Start Your Heritage Journey</CardTitle>
             <CardDescription>
               Create your free account to build your family tree
             </CardDescription>
@@ -81,9 +98,10 @@ const Register = () => {
                     <Input
                       id="firstName"
                       placeholder="Enter first name"
-                      className="mt-1"
+                      className="mt-1 focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
+                      maxLength={50}
                       required
                     />
                   </div>
@@ -92,9 +110,10 @@ const Register = () => {
                     <Input
                       id="lastName"
                       placeholder="Enter last name"
-                      className="mt-1"
+                      className="mt-1 focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
+                      maxLength={50}
                       required
                     />
                   </div>
@@ -106,7 +125,7 @@ const Register = () => {
                     id="email"
                     type="email"
                     placeholder="Enter your email"
-                    className="mt-1"
+                    className="mt-1 focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -119,7 +138,7 @@ const Register = () => {
                     id="phone"
                     type="tel"
                     placeholder="+91 phone number"
-                    className="mt-1"
+                    className="mt-1 focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -127,39 +146,43 @@ const Register = () => {
 
                 <div>
                   <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Create a strong password"
-                    className="mt-1"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Create a strong password"
+                      className="mt-1 pr-10 focus-visible:outline-none focus-visible:ring-0 ring-transparent focus-visible:border-orange-900"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-800"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-start gap-2">
                   <input
                     type="checkbox"
-                    className="rounded mt-1"
+                    className="rounded mt-1 border-orange-900 focus:ring-orange-900"
                     checked={agreedToTerms}
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    required
                   />
                   <div className="text-xs text-gray-600">
-                    I agree to the{' '}
-                    <Link href="/terms" className="hover:opacity-80 transition-opacity" style={{ color: '#64303A' }}>
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link href="/privacy" className="hover:opacity-80 transition-opacity" style={{ color: '#64303A' }}>
-                      Privacy Policy
-                    </Link>
+                    <span className="text-red-600">* </span>I agree to the Terms of Service and Privacy Policy
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full text-white hover:opacity-90 transition-opacity"
+                  className="w-full text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: '#64303A' }}
                   disabled={loading}
                 >
@@ -177,12 +200,12 @@ const Register = () => {
 
             {/* Social Registration */}
             <div className="space-y-3">
-              <Button variant="outline" className="w-full">
+              <Button className="w-full border hover:bg-teal-600 hover:text-white" style={{ borderColor: '#d4c5cb' }}>
                 <Mail className="h-4 w-4 mr-2" />
                 Sign up with Google
               </Button>
 
-              <Button variant="outline" className="w-full">
+              <Button className="w-full border hover:bg-teal-600 hover:text-white" style={{ borderColor: '#d4c5cb' }}>
                 <Phone className="h-4 w-4 mr-2" />
                 Sign up with Phone OTP
               </Button>

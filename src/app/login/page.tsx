@@ -9,7 +9,7 @@ import { Separator } from '@/app/dashboard/FamilyTreeBuilder/ui/separator';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Phone, ArrowLeft } from 'lucide-react';
+import { Mail, Phone, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -17,6 +17,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { signIn, user } = useAuth();
   const router = useRouter();
 
@@ -46,18 +47,18 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F5F2E9] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back to home */}
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-kutumba-maroon mb-6 transition-colors" style={{ color: '#64303A' }}>
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 mb-6 transition-colors">
           <ArrowLeft className="h-4 w-4" />
           Back to KutumbaTree
         </Link>
 
         <Card className="border-2 shadow-lg" style={{ borderColor: '#d4c5cb' }}>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl" style={{ color: '#64303A' }}>Welcome Back</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+            <CardDescription> 
               Sign in to continue your heritage journey
             </CardDescription>
           </CardHeader>
@@ -72,7 +73,7 @@ const Login = () => {
                     id="email"
                     type="email"
                     placeholder="Enter your email"
-                    className="mt-1"
+                    className="mt-1 focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -81,15 +82,25 @@ const Login = () => {
 
                 <div>
                   <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    className="mt-1"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter your password"
+                      className="mt-1 pr-10 focus-visible:outline-none focus-visible:ring-0 ring-transparent focus-visible:border-orange-900"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-800"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
@@ -122,12 +133,12 @@ const Login = () => {
 
             {/* Social Login */}
             <div className="space-y-3">
-              <Button variant="outline" className="w-full">
+              <Button className="w-full border hover:bg-teal-600 hover:text-white" style={{ borderColor: '#d4c5cb' }}>
                 <Mail className="h-4 w-4 mr-2" />
                 Continue with Google
               </Button>
 
-              <Button variant="outline" className="w-full">
+              <Button className="w-full border hover:bg-teal-600 hover:text-white" style={{ borderColor: '#d4c5cb' }}>
                 <Phone className="h-4 w-4 mr-2" />
                 Continue with Phone OTP
               </Button>
