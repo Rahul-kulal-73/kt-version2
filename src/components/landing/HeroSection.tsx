@@ -49,16 +49,16 @@ export default function HeroSection() {
             </span>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col font-semibold sm:flex-row gap-4">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center bg-kutumba-maroon hover:bg-kutumba-maroon/90 text-white shadow-kutumba px-8 py-3 text-lg rounded-md"
+              className="inline-flex items-center duration-300 justify-center bg-kutumba-maroon hover:bg-white border-2 hover:text-orange-900 hover:border-orange-900 text-white shadow-kutumba px-8 py-3 text-lg rounded-md"
             >
               Start Free Family Tree
             </Link>
             <Link
               href="#pricing"
-              className="inline-flex items-center justify-center border border-kutumba-border text-kutumba-dark-text hover:bg-kutumba-light-teal/20 px-8 py-3 text-lg rounded-md"
+              className="inline-flex items-center border-2 justify-center hover:text-orange-900 border-kutumba-border text-kutumba-dark-text hover:bg-white duration-300 px-8 py-3 text-lg rounded-md"
             >
               View Premium Features
             </Link>
