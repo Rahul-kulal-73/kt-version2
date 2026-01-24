@@ -255,9 +255,9 @@ export default function TimelinePage() {
                                                             <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border">
                                                                 <div className="flex items-start justify-between mb-2 gap-2">
                                                                     <div className="flex-1 min-w-0">
-                                                                        <h3 className="font-semibold text-sm sm:text-lg break-words">{event.title}</h3>
+                                                                        <h3 className="font-semibold text-sm sm:text-lg wrap-break-word">{event.title}</h3>
                                                                         {event.description && (
-                                                                            <p className="text-xs sm:text-sm text-gray-600 break-words">{event.description}</p>
+                                                                            <p className="text-xs sm:text-sm text-gray-600 wrap-break-word">{event.description}</p>
                                                                         )}
                                                                     </div>
                                                                     <span
@@ -271,7 +271,7 @@ export default function TimelinePage() {
                                                                     </span>
                                                                 </div>
                                                                 {event.location && (
-                                                                    <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 mt-2 break-words">
+                                                                    <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 mt-2 wrap-break-word">
                                                                         <MapPin className="h-3 w-3 shrink-0" />
                                                                         {event.location}
                                                                     </div>
@@ -321,12 +321,12 @@ export default function TimelinePage() {
                                                             <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <h4 className="font-semibold text-sm sm:text-base break-words">{loc.location}</h4>
-                                                            <p className="text-xs sm:text-sm text-gray-600 break-words">
+                                                            <h4 className="font-semibold text-sm sm:text-base wrap-break-word">{loc.location}</h4>
+                                                            <p className="text-xs sm:text-sm text-gray-600 wrap-break-word">
                                                                 {[loc.city, loc.state, loc.country].filter(Boolean).join(', ')}
                                                             </p>
                                                             {loc.description && (
-                                                                <p className="text-xs text-gray-500 mt-1 break-words">{loc.description}</p>
+                                                                <p className="text-xs text-gray-500 mt-1 wrap-break-word">{loc.description}</p>
                                                             )}
                                                             <span
                                                                 className="inline-block text-xs font-semibold mt-2 px-2 py-1 rounded"
@@ -344,7 +344,7 @@ export default function TimelinePage() {
                                         </div>
 
                                         <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                            <p className="text-blue-900 text-xs sm:text-sm break-words">
+                                            <p className="text-blue-900 text-xs sm:text-sm wrap-break-word">
                                                 🗺️ <strong>Coming soon:</strong> Interactive Google Maps visualization showing your journey across cities and countries.
                                             </p>
                                         </div>
