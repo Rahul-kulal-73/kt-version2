@@ -14,7 +14,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<{ error: any; user: User | null }>;
-    signUp: (email: string, password: string, data: { first_name: string; last_name: string }) => Promise<{ error: any; user: User | null }>;
+    signUp: (email: string, password: string, data: { first_name: string; middle_name?: string; last_name: string }) => Promise<{ error: any; user: User | null }>;
     signOut: () => void;
     updateUser: (updatedUser: Partial<User>) => void;
 }
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    const signUp = async (email: string, password: string, extraData: { first_name: string; last_name: string }) => {
+    const signUp = async (email: string, password: string, extraData: { first_name: string; middle_name?: string; last_name: string }) => {
         try {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',

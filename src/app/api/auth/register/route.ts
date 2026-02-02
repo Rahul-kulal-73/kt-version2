@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { first_name, last_name, email, password } = body;
+        const { first_name, middle_name, last_name, email, password } = body;
 
         if (!first_name || !last_name || !email || !password) {
             return NextResponse.json(
@@ -34,6 +34,7 @@ export async function POST(request: Request) {
 
         const newUser = await User.create({
             first_name,
+            middle_name,
             last_name,
             email,
             password_hash,
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
         const userResponse = {
             _id: newUser._id,
             first_name: newUser.first_name,
+            middle_name: newUser.middle_name,
             last_name: newUser.last_name,
             email: newUser.email,
         };

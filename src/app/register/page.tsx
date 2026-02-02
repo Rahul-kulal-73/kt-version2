@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Register = () => {
   const [firstName, setFirstName] = useState('');
+  const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -64,7 +65,7 @@ const Register = () => {
     }
 
     setLoading(true);
-    const { error } = await signUp(email, password, { first_name: firstName, last_name: lastName });
+    const { error } = await signUp(email, password, { first_name: firstName, middle_name: middleName, last_name: lastName });
 
     if (error) {
       toast.error(error.message || "Registration Failed");
@@ -93,12 +94,12 @@ const Register = () => {
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="firstName">First Name</Label>
                     <Input
                       id="firstName"
-                      placeholder="Enter first name"
+                      placeholder="First Name"
                       className="mt-1 focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
@@ -107,10 +108,21 @@ const Register = () => {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="middleName">Middle Name</Label>
+                    <Input
+                      id="middleName"
+                      placeholder="Middle Name"
+                      className="mt-1 focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
+                      value={middleName}
+                      onChange={(e) => setMiddleName(e.target.value)}
+                      maxLength={50}
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="lastName">Last Name</Label>
                     <Input
                       id="lastName"
-                      placeholder="Enter last name"
+                      placeholder="Last Name"
                       className="mt-1 focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
