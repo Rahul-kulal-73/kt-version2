@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Member from '@/models/Member';
 import Relationship from '@/models/Relationship';
 
 export async function PUT(
-    request: Request,
+    request: NextRequest,
     { params }: { params: Promise<{ memberId: string }> }
 ) {
     try {
@@ -26,17 +26,15 @@ export async function PUT(
 }
 
 export async function DELETE(
-    request: Request,
+    request: NextRequest,
     { params }: { params: Promise<{ memberId: string }> }
 ) {
     try {
         const { memberId } = await params;
         await connectToDatabase();
 
-        // Delete member
         await Member.findByIdAndDelete(memberId);
 
-        // Delete associated relationships
         await Relationship.deleteMany({
             $or: [{ person1_id: memberId }, { person2_id: memberId }]
         });
