@@ -271,7 +271,7 @@ const dummyFamilyMembers: FamilyMember[] = [
 const dummyRelationships: any[] = [
   // John & Mary marriage
   { id: 'rel1', person1_id: '1', person2_id: '2', relationship_type: 'spouse' },
-  
+
   // John & Mary's children
   { id: 'rel2', person1_id: '1', person2_id: '3', relationship_type: 'parent_child' },
   { id: 'rel3', person1_id: '2', person2_id: '3', relationship_type: 'parent_child' },
@@ -370,12 +370,12 @@ const dummyRelationships: any[] = [
 export default function FamilyTreeDemo() {
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
-  const handleAddMember = (relationType?: 'parent' | 'spouse' | 'child', relatedTo?: FamilyMember) => {
+  const handleAddMember = (relationType?: 'parent' | 'spouse' | 'child' | 'sibling', relatedTo?: FamilyMember, gender?: 'male' | 'female') => {
     console.log('Add new member:', {
       relationType,
       relatedTo: relatedTo ? `${relatedTo.first_name} ${relatedTo.last_name}` : 'root',
     });
-    
+
     // TODO: Implement your add member logic here
     // Example: Open a modal/dialog to collect new member information
     // Then update your family members and relationships arrays

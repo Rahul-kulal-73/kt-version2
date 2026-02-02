@@ -262,6 +262,17 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
 
     const handleMouseUp = useCallback(() => setIsDragging(false), []);
 
+    // Wheel Zoom Handler
+    const handleWheel = useCallback((e: React.WheelEvent) => {
+        const delta = -e.deltaY;
+        const scaleFactor = 1.05;
+
+        setZoom(currentZoom => {
+            const newZoom = delta > 0 ? currentZoom * scaleFactor : currentZoom / scaleFactor;
+            return Math.min(Math.max(newZoom, 0.1), 3);
+        });
+    }, []);
+
 
     // --- RENDERER HELPER (Elbow Lines) ---
     // Returns SVG Path d attribute
@@ -496,7 +507,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
             {/* Unified Toolbar (Top Left) */}
             <div className="absolute top-5 left-5 z-20 flex items-center gap-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
                 {/* Zoom Out */}
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-500" onClick={() => setZoom(z => Math.max(z * 0.8, 0.5))}>
+                <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-500" onClick={() => setZoom(z => Math.max(z * 0.8, 0.1))}>
                     <ZoomOut size={16} />
                 </Button>
 
@@ -506,7 +517,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                 </span>
 
                 {/* Zoom In */}
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-500" onClick={() => setZoom(z => Math.min(z * 1.2, 2))}>
+                <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-500" onClick={() => setZoom(z => Math.min(z * 1.2, 3))}>
                     <ZoomIn size={16} />
                 </Button>
 
@@ -533,6 +544,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onWheel={handleWheel} // Added Wheel Handler
             >
                 <div
                     ref={contentRef}
