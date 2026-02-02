@@ -285,30 +285,72 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                 const sPos = layout[sid];
                 if (sPos && sid > person.id) {
                     const y = pos.y + CARD_H / 2;
+                    const startX = pos.x + CARD_W;
+                    const endX = sPos.x;
+                    const midX = (startX + endX) / 2;
+
                     paths.push(
-                        <path
-                            key={`spouse-${person.id}-${sid}`}
-                            d={`M ${pos.x + CARD_W} ${y} L ${sPos.x} ${y}`}
-                            stroke="#888"
-                            strokeWidth="2"
-                            fill="none"
-                        />
+                        <g key={`spouse-${person.id}-${sid}`}>
+                            {/* Connection Line */}
+                            <path
+                                d={`M ${startX} ${y} L ${endX} ${y}`}
+                                stroke="#d1d5db"
+                                strokeWidth="2"
+                                fill="none"
+                            />
+                            {/* Wedding Ring Icon */}
+                            <g transform={`translate(${midX - 10}, ${y - 10})`}>
+                                {/* Outer Glow/Bg circle */}
+                                <circle cx="10" cy="10" r="14" fill="white" />
+                                <circle cx="10" cy="10" r="12" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="1.5" />
+                                {/* Interlocking Rings */}
+                                <g transform="translate(4, 6) scale(0.6)">
+                                    <circle cx="8" cy="8" r="7" fill="none" stroke="#D97706" strokeWidth="2.5" />
+                                    <circle cx="15" cy="8" r="7" fill="none" stroke="#D97706" strokeWidth="2.5" />
+                                </g>
+                            </g>
+                        </g>
                     );
                 }
             });
 
             // 2. Parent -> Child Lines
-            // Logic: If I have a spouse, draw from "Center of Couple". If single, from "Bottom of Me".
-            // Only draw lines to children if I am the "primary" parent (e.g. father, or single mother)
+            // Logic Update: Draw line if I am the "Primary" parent logic for this node relative to the couple.
+            // We want ONE line coming from the couple (or single parent) to the children.
+            // If there are spouses, we pick one person (e.g. the one with smaller ID or just checking if I've handled this couple) to draw the line.
 
-            // We define "primary" as Male, OR if no spouse.
-            // (If same-sex couple, we might need a tie-breaker, but assuming Male-Female for now or handling duplicates harmlessly)
-            const isPrimary = (person.gender === 'male' || (spouseMap.get(person.id)?.length || 0) === 0);
+            // Check if I have a spouse.
+            const spouses = spouseMap.get(person.id) || [];
+            let shouldDrawChildren = false;
 
-            if (isPrimary) {
+            if (spouses.length === 0) {
+                // Single parent -> Always draw
+                shouldDrawChildren = true;
+            } else {
+                // Couple -> Draw only if I am the "first" in the relationship (e.g. Male, or alphabetically first if same gender) to avoid double lines
+                // Simplest: If I am Male, draw. If both Female/Male, Male draws.
+                // If I am Female and spouse is Male, I don't draw.
+                // If same gender, use ID comparison.
+
+                const spouseId = spouses[0]; // simplistic for 1 spouse
+                const spouse = personMap.get(spouseId);
+
+                if (person.gender === 'male' && spouse?.gender !== 'male') {
+                    shouldDrawChildren = true;
+                } else if (person.gender === spouse?.gender) {
+                    // Tie-breaker
+                    shouldDrawChildren = person.id < spouseId;
+                } else if (person.gender !== 'male' && spouse?.gender === 'male') {
+                    shouldDrawChildren = false;
+                } else {
+                    // Default fallback
+                    shouldDrawChildren = true;
+                }
+            }
+
+            if (shouldDrawChildren) {
                 // Collect children from Self AND from Spouses
                 const myChildren = childrenMap.get(person.id) || [];
-                const spouses = spouseMap.get(person.id) || [];
 
                 const spouseChildren = spouses.flatMap(sid => childrenMap.get(sid) || []);
 
@@ -325,7 +367,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                         if (visibleSpouseId) {
                             const sPos = layout[visibleSpouseId];
                             startX = (pos.x + sPos.x + CARD_W) / 2; // Midpoint of couple
-                            startY = pos.y + CARD_H / 2; // From the connecting line
+                            startY = pos.y + CARD_H / 2; // From the connecting line (middle height)
                         }
                     }
 
@@ -336,7 +378,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                                 <path
                                     key={`child-${person.id}-${cid}`}
                                     d={drawElbowInfo(startX, startY, cPos.x + CARD_W / 2, cPos.y)}
-                                    stroke="#888"
+                                    stroke="#9ca3af"
                                     strokeWidth="2"
                                     fill="none"
                                 />
@@ -348,7 +390,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
         });
 
         return paths;
-    }, [layout, familyMembers, spouseMap, childrenMap]);
+    }, [layout, familyMembers, spouseMap, childrenMap, personMap]);
 
 
     const handleFocus = (id: string) => {
@@ -443,6 +485,11 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                     targetMember={personMap.get(pickerTargetId)!}
                     onClose={() => setPickerTargetId(null)}
                     onOptionSelect={handlePickerSelect}
+                    existingRelations={{
+                        hasFather: !!parentsMap.get(pickerTargetId!)?.some(pid => personMap.get(pid)?.gender === 'male'),
+                        hasMother: !!parentsMap.get(pickerTargetId!)?.some(pid => personMap.get(pid)?.gender === 'female'),
+                        hasSpouse: (spouseMap.get(pickerTargetId!)?.length || 0) > 0,
+                    }}
                 />
             )}
 
@@ -475,17 +522,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                     <Target size={16} />
                 </Button>
 
-                <div className="h-4 w-px bg-gray-300 mx-1" /> {/* Divider */}
 
-                {/* Add Member (Start New Family) */}
-                <Button
-                    variant="ghost"
-                    className="h-8 text-gray-600 text-xs font-medium hover:text-gray-900"
-                    onClick={() => onAddMember()}
-                >
-                    <Plus size={14} className="mr-1" />
-                    Add Member
-                </Button>
             </div>
 
             {/* Canvas */}

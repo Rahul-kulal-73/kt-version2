@@ -22,6 +22,7 @@ export interface ILocationHistory {
 export interface IUser {
     _id: mongoose.Types.ObjectId;
     first_name: string;
+    middle_name?: string;
     last_name: string;
     email: string;
     password_hash: string;
@@ -85,6 +86,7 @@ const LifeEventSchema = new Schema({
 
 const UserSchema = new Schema<IUser>({
     first_name: { type: String, required: true },
+    middle_name: { type: String },
     last_name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password_hash: { type: String, required: true },

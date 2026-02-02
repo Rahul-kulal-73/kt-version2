@@ -61,11 +61,26 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
 
     const [newMemberData, setNewMemberData] = useState({
         first_name: '',
+        middle_name: '',
         last_name: '',
         gender: '',
         birth_date: '',
         death_date: '',
+        photo_url: '',
     });
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setNewMemberData(prev => ({ ...prev, photo_url: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const spouseGenderConflict =
         addContext.relationType === 'spouse' &&
@@ -157,13 +172,30 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
 
                         if (existingParentRel) {
                             const existingParentId = existingParentRel.person1_id;
-                            // Add spouse relationship
-                            // We do this immediately after main relationship
+
+                            // 1. Link as Spouse
                             setTimeout(() => {
+                                // Add spouse relationship
                                 addRelationship({
                                     person1_id: existingParentId,
                                     person2_id: newMember.id,
                                     relationship_type: 'spouse'
+                                });
+
+                                // 2. Link to other siblings (children of the existing parent)
+                                // Find all children of the existing parent
+                                const existingSiblings = relationships
+                                    .filter(r => r.relationship_type === 'parent_child' && r.person1_id === existingParentId)
+                                    .map(r => r.person2_id)
+                                    .filter(childId => childId !== addContext.relatedTo!.id); // Exclude the child we are already linking to
+
+                                // Create relationships for other siblings
+                                existingSiblings.forEach(siblingId => {
+                                    addRelationship({
+                                        person1_id: newMember.id,
+                                        person2_id: siblingId,
+                                        relationship_type: 'parent_child'
+                                    });
                                 });
                             }, 100);
                         }
@@ -236,10 +268,12 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
             setAddContext({});
             setNewMemberData({
                 first_name: '',
+                middle_name: '',
                 last_name: '',
                 gender: '',
                 birth_date: '',
                 death_date: '',
+                photo_url: '',
             });
             toast.success('Family member added successfully!');
         } catch (error) {
@@ -250,8 +284,18 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
         }
     };
 
-    const handleOpenAddMember = (relationType?: 'parent' | 'spouse' | 'child' | null, relatedTo?: FamilyMember | null) => {
-        setAddContext({ relationType: relationType || undefined, relatedTo: relatedTo || undefined });
+    const handleOpenAddMember = (relationType?: 'parent' | 'spouse' | 'child' | 'sibling' | null, relatedTo?: FamilyMember | null) => {
+        // We only support parent/spouse/child for now in terms of logic, sibling is just a placeholder in picker that maps to parent logic usually
+        // But for now let's just cast it or ignore sibling specific logic if not implemented
+        const supportedType = (relationType === 'sibling') ? 'child' : relationType; // If sibling, it means adding child to parent? No, "Add Sibling" means adding another child to MY parents.
+        // Actually, for "Add Sibling", the caller (TreeVisualization) handles finding the parent and calling 'add child' on the parent.
+        // So here we might receive 'child' if the logic was pre-processed, OR we just accept the type.
+
+        // However, the TreeVisualization calls onAddMember with the raw type from picker.
+        // Let's coerce for now to satisfy TS if we aren't changing the logic deeply.
+
+        setAddContext({ relationType: supportedType as 'parent' | 'spouse' | 'child' | undefined, relatedTo: relatedTo || undefined });
+        // ... (rest)
 
         let initialLastName = '';
         if (relatedTo && (relationType === 'child' || relationType === 'spouse')) {
@@ -327,6 +371,74 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
         toast.info('Sharing feature coming soon in Heritage Explorer!');
     };
 
+    const handleRepairTree = async () => {
+        const toastId = toast.loading('Checking family connections...');
+        let fixesApplied = 0;
+
+        try {
+            // 1. Find all spouse relationships
+            const spouseRels = relationships.filter(r => r.relationship_type === 'spouse');
+
+            // Loop through each spouse pair
+            for (const rel of spouseRels) {
+                const spouse1 = rel.person1_id;
+                const spouse2 = rel.person2_id;
+
+                // Find children of spouse 1
+                const children1 = relationships
+                    .filter(r => r.relationship_type === 'parent_child' && r.person1_id === spouse1)
+                    .map(r => r.person2_id);
+
+                // Find children of spouse 2
+                const children2 = relationships
+                    .filter(r => r.relationship_type === 'parent_child' && r.person1_id === spouse2)
+                    .map(r => r.person2_id);
+
+                // Identify children that need linking
+                // Children of S1 that are NOT linked to S2
+                const missingForS2 = children1.filter(cId => !children2.includes(cId));
+
+                // Children of S2 that are NOT linked to S1
+                const missingForS1 = children2.filter(cId => !children1.includes(cId));
+
+                // Apply fixes
+                if (missingForS2.length > 0) {
+                    for (const childId of missingForS2) {
+                        await addRelationship({
+                            person1_id: spouse2,
+                            person2_id: childId,
+                            relationship_type: 'parent_child'
+                        });
+                        fixesApplied++;
+                    }
+                }
+
+                if (missingForS1.length > 0) {
+                    for (const childId of missingForS1) {
+                        await addRelationship({
+                            person1_id: spouse1,
+                            person2_id: childId,
+                            relationship_type: 'parent_child'
+                        });
+                        fixesApplied++;
+                    }
+                }
+            }
+
+            toast.dismiss(toastId);
+            if (fixesApplied > 0) {
+                toast.success(`Tree repaired! Fixed ${fixesApplied} missing parent links.`);
+            } else {
+                toast.info('Tree is healthy! No missing links found.');
+            }
+
+        } catch (error) {
+            console.error('Repair failed:', error);
+            toast.dismiss(toastId);
+            toast.error('Failed to repair tree.');
+        }
+    };
+
     const handleAddRelationship = async (relationshipData: {
         person1_id: string;
         person2_id: string;
@@ -400,58 +512,114 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
 
     return (
         <div className="min-h-screen" style={{ backgroundColor: '#F5F2E9' }}>
-            <header className="bg-white border-b sticky top-0 z-40" style={{ borderColor: '#d4c5cb' }}>
-                <div className="container mx-auto px-3 sm:px-4 py-3">
-                    <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
-                        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+            <header className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur-md shadow-sm transition-all duration-200" style={{ borderColor: 'rgba(212, 197, 203, 0.5)' }}>
+                <div className="container mx-auto px-4 py-3 sm:px-6 sm:py-4">
+                    <div className="flex items-center justify-between gap-4">
+                        {/* Left Side: Navigation & Title */}
+                        <div className="flex items-center gap-4 min-w-0">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="sm" className="h-8 w-8 sm:h-auto sm:w-auto p-0 sm:px-3">
-                                    <ArrowLeft className="h-4 w-4" />
-                                    <span className="hidden sm:inline ml-2">Dashboard</span>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-9 w-9 rounded-full p-0 hover:bg-black/5 text-gray-500 hover:text-gray-900 transition-colors"
+                                    title="Back to Dashboard"
+                                >
+                                    <ArrowLeft className="h-5 w-5" />
                                 </Button>
                             </Link>
-                            <div className="min-w-0 flex-1">
-                                <h1 className="text-base sm:text-xl font-bold truncate" style={{ color: '#64303A' }}>{familyTree.name}</h1>
-                                <p className="text-xs sm:text-sm text-gray-600 truncate">
-                                    {familyMembers.length}/25 members
+
+                            <div className="flex flex-col min-w-0">
+                                <div className="flex items-center gap-3">
+                                    <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate text-gray-900 leading-tight">
+                                        {familyTree.name}
+                                    </h1>
+                                    <Badge variant="secondary" className="hidden sm:inline-flex bg-[#64303A]/10 text-[#64303A] border-none px-2 py-0.5 h-5 text-[10px] font-semibold tracking-wide uppercase">
+                                        FAMILY TREE
+                                    </Badge>
+                                </div>
+                                <p className="text-xs text-gray-500 font-medium truncate flex items-center gap-1.5 mt-0.5">
+                                    <Users className="h-3 w-3" />
+                                    <span>{familyMembers.length} members</span>
+                                    {familyMembers.length >= 25 && (
+                                        <span className="text-amber-600 ml-1 font-semibold text-[10px] bg-amber-50 px-1.5 py-0.5 rounded-sm border border-amber-100 uppercase tracking-wider">Free Limit</span>
+                                    )}
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
-                            <Button variant="outline" size="sm" onClick={handleShare} className="text-xs sm:text-sm h-8 sm:h-auto px-2 sm:px-3">
-                                <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span className="hidden sm:inline ml-1 sm:ml-2">Share</span>
+
+                        {/* Right Side: Actions */}
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleShare}
+                                className="hidden sm:inline-flex h-9 text-xs font-medium border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                            >
+                                <Share2 className="h-4 w-4 mr-2 text-gray-500" />
+                                Share
                             </Button>
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-auto px-2 sm:px-3">
-                                        <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                                        <span className="hidden sm:inline ml-1 sm:ml-2">Export</span>
-                                        <ChevronDown className="h-2 w-2 sm:h-3 sm:w-3 ml-1 opacity-50" />
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-9 text-xs font-medium border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 gap-1.5 px-3"
+                                    >
+                                        <Download className="h-4 w-4 text-gray-500" />
+                                        <span className="hidden sm:inline">Export</span>
+                                        <ChevronDown className="h-3 w-3 text-gray-400" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 sm:w-56">
-                                    <DropdownMenuItem onClick={handleExportPDF} className="cursor-pointer text-xs sm:text-sm">
-                                        <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                                        Download as PDF
+                                <DropdownMenuContent align="end" className="w-56 p-1 rounded-xl border-gray-100 shadow-lg bg-white/95 backdrop-blur-sm">
+                                    <DropdownMenuItem onClick={handleExportPDF} className="cursor-pointer text-xs font-medium px-3 py-2.5 rounded-lg focus:bg-gray-50 transition-colors my-0.5">
+                                        <FileText className="h-4 w-4 mr-3 text-red-500" />
+                                        <div>
+                                            <span className="block text-gray-700">Download PDF</span>
+                                            <span className="block text-[10px] text-gray-400 font-normal">High quality printable format</span>
+                                        </div>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={handleExportImage} className="cursor-pointer text-xs sm:text-sm">
-                                        <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                                        Download as Image
+                                    <DropdownMenuItem onClick={handleExportImage} className="cursor-pointer text-xs font-medium px-3 py-2.5 rounded-lg focus:bg-gray-50 transition-colors my-0.5">
+                                        <ImageIcon className="h-4 w-4 mr-3 text-blue-500" />
+                                        <div>
+                                            <span className="block text-gray-700">Download Image</span>
+                                            <span className="block text-[10px] text-gray-400 font-normal">PNG format for sharing</span>
+                                        </div>
                                     </DropdownMenuItem>
-                                    <Separator className="my-1" />
-                                    <DropdownMenuItem onClick={handleHomeDelivery} className="cursor-pointer text-xs sm:text-sm">
-                                        <Truck className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                                        Home Delivery
+                                    <Separator className="my-1 bg-gray-100" />
+                                    <DropdownMenuItem onClick={handleHomeDelivery} className="cursor-pointer text-xs font-medium px-3 py-2.5 rounded-lg focus:bg-gray-50 transition-colors my-0.5 group">
+                                        <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center mr-3 group-hover:bg-amber-100 transition-colors">
+                                            <Truck className="h-4 w-4 text-amber-600" />
+                                        </div>
+                                        <div>
+                                            <span className="block text-gray-900 font-semibold">Order Print</span>
+                                            <span className="block text-[10px] text-amber-600 font-medium">Home Delivery 🚚</span>
+                                        </div>
+                                    </DropdownMenuItem>
+                                    <Separator className="my-1 bg-gray-100" />
+                                    <DropdownMenuItem onClick={handleRepairTree} className="cursor-pointer text-xs font-medium px-3 py-2.5 rounded-lg focus:bg-gray-50 transition-colors my-0.5">
+                                        <div className="h-8 w-8 rounded-full bg-purple-50 flex items-center justify-center mr-3">
+                                            <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span className="block text-gray-900 font-semibold">Fix Issues</span>
+                                            <span className="block text-[10px] text-purple-600 font-medium">Auto-repair links 🪄</span>
+                                        </div>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
+                            <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block" />
+
                             <Link href="/profile">
-                                <Button variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-auto px-2 sm:px-3">
-                                    <User className="h-3 w-3 sm:h-4 sm:w-4" />
-                                    <span className="hidden sm:inline ml-1 sm:ml-2">Profile</span>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-9 w-9 rounded-full p-0 bg-gray-50 hover:bg-gray-100 border border-gray-100"
+                                >
+                                    <User className="h-4 w-4 text-gray-600" />
                                 </Button>
                             </Link>
                         </div>
@@ -490,7 +658,32 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                         <DialogTitle className="text-base sm:text-lg">{getAddDialogTitle()}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3 sm:space-y-4 text-sm sm:text-base">
-                        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+
+                        {/* Image Upload for New Member */}
+                        <div className="flex justify-center mb-4">
+                            <div
+                                className="relative w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-50 transition-colors"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                {newMemberData.photo_url ? (
+                                    <img src={newMemberData.photo_url} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="text-center text-gray-400">
+                                        <ImageIcon className="h-8 w-8 mx-auto mb-1" />
+                                        <span className="text-xs">Upload Photo</span>
+                                    </div>
+                                )}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleFileChange}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                             <div>
                                 <Label htmlFor="first_name" className="text-xs sm:text-sm">First Name *</Label>
                                 <Input
@@ -498,6 +691,17 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                                     value={newMemberData.first_name}
                                     onChange={(e) => setNewMemberData(prev => ({ ...prev, first_name: e.target.value }))}
                                     placeholder="First name"
+                                    className="focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900 text-xs sm:text-sm"
+                                    maxLength={50}
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="middle_name" className="text-xs sm:text-sm">Middle Name</Label>
+                                <Input
+                                    id="middle_name"
+                                    value={newMemberData.middle_name}
+                                    onChange={(e) => setNewMemberData(prev => ({ ...prev, middle_name: e.target.value }))}
+                                    placeholder="Middle name"
                                     className="focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900 text-xs sm:text-sm"
                                     maxLength={50}
                                 />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Pencil } from 'lucide-react'; // Can use Lucide icons inside buttons if we want, or plain text
+import { Pencil, Network, Crown } from 'lucide-react';
 import { FamilyMember } from '@/components/hooks/useFamilyTree';
 import styles from './family-tree.module.css';
 
@@ -8,12 +8,11 @@ interface MemberCardProps {
     isSelected?: boolean;
     isRoot?: boolean;
     onClick: () => void;
-    // We retain these props to hook up the actions
     onAddParent?: () => void;
     onAddSpouse?: () => void;
     onAddChild?: () => void;
-    onNodeDelete?: () => void; // Added for delete action
-    hasHiddenFamily?: boolean; // To show the dumbbell icon
+    onNodeDelete?: () => void;
+    hasHiddenFamily?: boolean;
     onViewFamily?: () => void;
 }
 
@@ -22,36 +21,31 @@ export const MemberCard: React.FC<MemberCardProps> = ({
     isSelected,
     isRoot,
     onClick,
-    onAddParent,
-    onAddSpouse,
     onAddChild,
     onNodeDelete,
     hasHiddenFamily,
     onViewFamily,
 }) => {
     const birthYear = member.birth_date ? new Date(member.birth_date).getFullYear() : '';
+    const isDeceased = !!member.death_date;
 
-    // Construct class names manually or with a helper if preferred
-    // Using string interpolation for simplicity with the module
     const genderClass = member.gender === 'male' ? styles.male : member.gender === 'female' ? styles.female : styles.other;
     const rootClass = isRoot ? styles.focusedRoot : '';
     const nodeClasses = `${styles.node} ${genderClass} ${rootClass}`;
 
     return (
-        // The container div acts as ".node"
         <div
             className={nodeClasses}
             onClick={(e) => {
-                e.stopPropagation(); // prevent drag start on click?
+                e.stopPropagation();
                 onClick();
             }}
-            // Style overrides for selection could go here if needed, or add another class
             style={{
-                borderColor: isSelected ? '#4a90e2' : undefined,
-                boxShadow: isSelected ? '0 0 0 2px #4a90e2' : undefined
+                // Optional: selection highlight could be a glow instead of border change to preserve gender color
+                boxShadow: isSelected ? '0 0 0 3px rgba(66, 153, 225, 0.5)' : undefined
             }}
         >
-            {/* Dumbbell Icon for "View Family" if applicable */}
+            {/* Network Icon for "View Family" */}
             {hasHiddenFamily && !isRoot && (
                 <button
                     className={styles.dumbbellBtn}
@@ -61,25 +55,9 @@ export const MemberCard: React.FC<MemberCardProps> = ({
                         onViewFamily?.();
                     }}
                 >
-                    <svg viewBox="0 0 24 14">
-                        <rect x="0" y="2" width="8" height="10" rx="2" ry="2" />
-                        <rect x="16" y="2" width="8" height="10" rx="2" ry="2" />
-                        <line x1="8" y1="7" x2="16" y2="7" stroke="currentColor" strokeWidth="2" />
-                    </svg>
+                    <Network size={14} />
                 </button>
             )}
-
-            {/* Actions Overlay */}
-            <div className={styles.actionsOverlay}>
-                {/* The "Add Relation" button representing the picker opener */}
-                <button
-                    className={`${styles.actBtn} ${styles.addC} ${member.gender === 'male' ? styles.btnMale : member.gender === 'female' ? styles.btnFemale : ''}`}
-                    title="Add Relation"
-                    onClick={(e) => { e.stopPropagation(); onAddChild?.(); }}
-                >
-                    ➕
-                </button>
-            </div>
 
             {/* Avatar */}
             <div className={styles.avatar}>
@@ -88,21 +66,41 @@ export const MemberCard: React.FC<MemberCardProps> = ({
                 ) : (
                     member.first_name[0]
                 )}
+                {member.is_root && (
+                    <div
+                        className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 rounded-full p-1 shadow-xs border border-white z-10"
+                        title="Tree Owner"
+                    >
+                        <Crown size={12} fill="currentColor" />
+                    </div>
+                )}
             </div>
 
             {/* Info */}
             <div className={styles.info}>
                 <div className={styles.name}>
-                    {member.first_name} {member.last_name}
-                    <span className={`${styles.genderSymbol} ${genderClass}`}>
-                        {member.gender === 'male' ? '♂' : member.gender === 'female' ? '♀' : ''}
-                    </span>
+                    {member.first_name} {member.middle_name ? member.middle_name + ' ' : ''}{member.last_name}
                 </div>
-                {birthYear && (
-                    <div className={styles.details}>
-                        {birthYear}
-                    </div>
-                )}
+                <div className={styles.details}>
+                    {birthYear}
+                    {isDeceased && ' - Deceased'}
+                </div>
+            </div>
+
+            {/* Edit Button (Pencil) - Visual trigger for selection/edit */}
+            <button className={styles.editBtn} aria-label="Edit">
+                <Pencil size={14} />
+            </button>
+
+            {/* Actions Overlay - The "Hanging" Add Button */}
+            <div className={styles.actionsOverlay}>
+                <button
+                    className={`${styles.actBtn} ${styles.addC}`}
+                    title="Add Relation"
+                    onClick={(e) => { e.stopPropagation(); onAddChild?.(); }}
+                >
+                    +
+                </button>
             </div>
         </div>
     );

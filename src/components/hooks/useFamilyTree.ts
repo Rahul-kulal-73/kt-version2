@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 export interface FamilyMember {
     id: string;
     first_name: string;
+    middle_name?: string;
     last_name: string;
     gender: string;
     birth_date?: string;
@@ -42,6 +43,7 @@ export const useFamilyTree = (treeId: string) => {
             setFamilyMembers(data.members.map((m: any) => ({
                 id: m._id,
                 first_name: m.first_name,
+                middle_name: m.middle_name || '',
                 last_name: m.last_name,
                 gender: m.gender,
                 birth_date: m.birth_date ? m.birth_date.split('T')[0] : '',
@@ -80,6 +82,7 @@ export const useFamilyTree = (treeId: string) => {
             const newMember = {
                 id: newMemberData._id,
                 first_name: newMemberData.first_name,
+                middle_name: newMemberData.middle_name || '',
                 last_name: newMemberData.last_name,
                 gender: newMemberData.gender,
                 birth_date: newMemberData.birth_date ? newMemberData.birth_date.split('T')[0] : '',

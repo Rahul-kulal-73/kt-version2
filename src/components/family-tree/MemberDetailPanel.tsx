@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Edit2, Save, Trash2, Calendar, Heart, ChevronDown, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,14 +35,29 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Partial<FamilyMember>>({});
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setEditData(prev => ({ ...prev, photo_url: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     useEffect(() => {
         if (member) {
             setEditData({
                 first_name: member.first_name,
+                middle_name: member.middle_name || '',
                 last_name: member.last_name,
                 gender: member.gender || '',
                 birth_date: member.birth_date || '',
                 death_date: member.death_date || '',
+                photo_url: member.photo_url || '',
             });
             setIsEditing(false);
         }
@@ -157,7 +172,7 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
                                 )}
                             </div>
                             <h3 className="text-xl font-bold" style={{ color: '#64303A' }}>
-                                {member.first_name} {member.last_name}
+                                {member.first_name} {member.middle_name ? member.middle_name + ' ' : ''}{member.last_name}
                             </h3>
                             <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
                                 {member.is_root && (
@@ -180,12 +195,45 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
 
                     {isEditing ? (
                         <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Edit Avatar */}
+                            <div className="flex justify-center mb-4">
+                                <div
+                                    className="relative w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-50 transition-colors"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    {editData.photo_url ? (
+                                        <img src={editData.photo_url} alt="Preview" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center text-gray-400">
+                                            <Edit2 className="h-6 w-6 mx-auto mb-1" />
+                                            <span className="text-[10px]">Change</span>
+                                        </div>
+                                    )}
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                     <Label>First Name *</Label>
                                     <Input
                                         value={editData.first_name || ''}
                                         onChange={(e) => setEditData(prev => ({ ...prev, first_name: e.target.value }))}
+                                        className="focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
+                                        maxLength={50}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Middle Name</Label>
+                                    <Input
+                                        value={editData.middle_name || ''}
+                                        onChange={(e) => setEditData(prev => ({ ...prev, middle_name: e.target.value }))}
                                         className="focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
                                         maxLength={50}
                                     />
@@ -380,19 +428,12 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
 
                             <Separator />
 
-                            <div className="space-y-3">
-                                <Button className="w-full text-white" style={{ backgroundColor: '#64303A' }} onClick={onAddRelationship}>
-                                    <Heart className="h-4 w-4 mr-2" />
-                                    Add Relationship
+                            {!member.is_root && (
+                                <Button variant="destructive" className="w-full text-white bg-red-600 hover:bg-red-700" onClick={handleDelete}>
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete Member
                                 </Button>
-
-                                {!member.is_root && (
-                                    <Button variant="destructive" className="w-full text-white bg-red-600 hover:bg-red-700" onClick={handleDelete}>
-                                        <Trash2 className="h-4 w-4 mr-2" />
-                                        Delete Member visualization
-                                    </Button>
-                                )}
-                            </div>
+                            )}
                         </>
                     )}
                 </div>
