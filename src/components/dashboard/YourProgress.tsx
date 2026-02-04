@@ -1,36 +1,79 @@
-import { Clock } from 'lucide-react';
+import { Clock, Users, Crown, AlertCircle } from 'lucide-react';
 
 interface YourProgressProps {
   familyMembersCount: number;
+  user: any;
 }
 
-const YourProgress = ({ familyMembersCount, user }: { familyMembersCount: number; user: any }) => {
+const YourProgress = ({ familyMembersCount, user }: YourProgressProps) => {
   const limit = user?.tree_limit || 100;
   const remaining = Math.max(0, limit - familyMembersCount);
+  const percentage = Math.min(100, (familyMembersCount / limit) * 100);
+
+  const isNearLimit = percentage > 80;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
-        <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
-          <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
-          Your Progress
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+      <div className="p-5 sm:p-6 border-b border-gray-50 flex items-center justify-between">
+        <h3 className="flex items-center gap-2.5 text-lg font-bold text-gray-900">
+          <Clock className="h-5 w-5 text-[#64303A]" />
+          Tree Progress
         </h3>
+        {user?.plan_type !== 'pro' && (
+          <span className="text-xs font-semibold px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full">
+            Free Plan
+          </span>
+        )}
       </div>
-      <div className="px-3 sm:px-6 py-3 sm:py-4">
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
-          <div className="p-2 sm:p-4 border border-gray-200 rounded-lg">
-            <div className="text-lg sm:text-2xl font-bold" style={{ color: '#64303A' }}>{familyMembersCount}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Family Members</div>
+
+      <div className="p-5 sm:p-6 space-y-6">
+        {/* Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm font-medium">
+            <span className="text-gray-700">Storage Used</span>
+            <span className={`${isNearLimit ? 'text-amber-600' : 'text-gray-500'}`}>
+              {Math.round(percentage)}%
+            </span>
           </div>
-          <div className="p-2 sm:p-4 border border-gray-200 rounded-lg">
-            <div className="text-lg sm:text-2xl font-bold" style={{ color: '#64303A' }}>{limit}</div>
-            <div className="text-xs sm:text-sm text-gray-600">{user?.plan_type === 'pro' ? 'Pro Limit' : 'Free Limit'}</div>
-          </div>
-          <div className="p-2 sm:p-4 border border-gray-200 rounded-lg">
-            <div className="text-lg sm:text-2xl font-bold" style={{ color: '#64303A' }}>{remaining}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Remaining</div>
+          <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-1000 ease-out ${isNearLimit ? 'bg-amber-500' : 'bg-[#64303A]'
+                }`}
+              style={{ width: `${percentage}%` }}
+            />
           </div>
         </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 flex flex-col items-center justify-center text-center group hover:bg-[#64303A]/5 transition-colors">
+            <Users className="h-5 w-5 text-gray-400 group-hover:text-[#64303A] mb-2 transition-colors" />
+            <div className="text-xl font-bold text-gray-900">{familyMembersCount}</div>
+            <div className="text-xs font-medium text-gray-500 mt-1">Members</div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 flex flex-col items-center justify-center text-center group hover:bg-[#64303A]/5 transition-colors">
+            <Crown className="h-5 w-5 text-gray-400 group-hover:text-[#64303A] mb-2 transition-colors" />
+            <div className="text-xl font-bold text-gray-900">{limit}</div>
+            <div className="text-xs font-medium text-gray-500 mt-1">Total Limit</div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 flex flex-col items-center justify-center text-center group hover:bg-amber-50 transition-colors">
+            <AlertCircle className="h-5 w-5 text-gray-400 group-hover:text-amber-500 mb-2 transition-colors" />
+            <div className="text-xl font-bold text-gray-900">{remaining}</div>
+            <div className="text-xs font-medium text-gray-500 mt-1">Remaining</div>
+          </div>
+        </div>
+
+        {isNearLimit && user?.plan_type !== 'pro' && (
+          <div className="flex items-center gap-3 p-3 text-sm bg-amber-50 text-amber-800 rounded-xl border border-amber-100">
+            <div className="shrink-0 p-1.5 bg-amber-100 rounded-full">
+              <Crown className="h-3.5 w-3.5 text-amber-700" />
+            </div>
+            <p className="font-medium">
+              Running out of space? Upgrade to Pro for unlimited members.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,23 +1,42 @@
-import { Book } from 'lucide-react';
+import { Book, Lightbulb, Map } from 'lucide-react';
 
 const GettingStarted = () => {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
-        <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
-          <Book className="h-4 w-4 sm:h-5 sm:w-5" />
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-5 border-b border-gray-50 bg-gradient-to-r from-amber-50/50 to-orange-50/50">
+        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+          <Book className="h-5 w-5 text-amber-600" />
           Getting Started
         </h3>
       </div>
-      <div className="px-3 sm:px-6 py-3 sm:py-4">
-        <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-          <div className="p-2 sm:p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="font-medium mb-1">💡 Tip</p>
-            <p className="text-gray-700">Start with yourself as the root person, then add parents and siblings.</p>
+      <div className="p-5">
+        <div className="space-y-3">
+          <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100">
+            <div className="flex gap-3">
+              <div className="shrink-0 mt-0.5">
+                <Lightbulb className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900 text-sm mb-1">Quick Tip</p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Start with yourself as the root person, then add parents and siblings one by one.
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="p-2 sm:p-3 border border-gray-200 rounded-lg">
-            <p className="font-medium mb-1">📍 Next Step</p>
-            <p className="text-gray-700">Ask elderly family members about their parents' names and birth places.</p>
+
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+            <div className="flex gap-3">
+              <div className="shrink-0 mt-0.5">
+                <Map className="h-5 w-5 text-gray-400" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900 text-sm mb-1">Research Step</p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Ask elderly family members about their parents' names and birth places to fill gaps.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

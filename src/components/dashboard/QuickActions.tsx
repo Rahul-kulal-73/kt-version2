@@ -1,10 +1,9 @@
-import { 
+import {
   Users,
-  Search,
   Plus,
-  Upload,
   BookOpen,
   MapPin,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -14,67 +13,63 @@ interface QuickActionsProps {
 
 const QuickActions = ({ familyTree }: QuickActionsProps) => {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
-        <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
-          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-          Quick Actions
-        </h3>
-      </div>
-      <div className="px-3 sm:px-6 py-3 sm:py-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-          <Link href={familyTree ? `/tree/${familyTree.id}` : "#"}>
-            <button 
-              className="h-16 sm:h-20 w-full flex flex-col items-center justify-center gap-1 sm:gap-2 rounded-lg text-white font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs sm:text-sm"
-              style={{ backgroundColor: '#64303A' }}
-              disabled={!familyTree}
-            >
-              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span>Add Member</span>
-            </button>
-          </Link>
-          
-          <Link href="/story">
-            <button 
-              className="h-16 sm:h-20 w-full flex flex-col items-center justify-center gap-1 sm:gap-2 rounded-lg text-white font-medium hover:opacity-90 transition-all text-xs sm:text-sm"
-              style={{ backgroundColor: '#2563eb' }}
-            >
-              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
-              My Story
-            </button>
-          </Link>
-          
-          <Link href="/timeline">
-            <button 
-              className="h-16 sm:h-20 w-full flex flex-col items-center justify-center gap-1 sm:gap-2 rounded-lg text-white font-medium hover:opacity-90 transition-all text-xs sm:text-sm"
-              style={{ backgroundColor: '#059669' }}
-            >
-              <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
-              Timeline
-            </button>
-          </Link>
-          
-          <div>
-            <button 
-              className="h-16 sm:h-20 w-full flex flex-col items-center justify-center gap-1 sm:gap-2 rounded-lg border border-gray-300 bg-white text-gray-600 opacity-60 cursor-not-allowed text-xs sm:text-sm"
-              disabled
-            >
-              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span>Search</span>
-            </button>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Link href={familyTree ? `/tree/${familyTree.id}` : "#"} className="group block">
+        <button
+          className="w-full h-full p-6 text-left rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 relative overflow-hidden"
+          disabled={!familyTree}
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Users className="h-24 w-24 text-[#64303A]" />
           </div>
-          
-          <div>
-            <button 
-              className="h-16 sm:h-20 w-full flex flex-col items-center justify-center gap-1 sm:gap-2 rounded-lg border border-gray-300 bg-white text-gray-600 opacity-60 cursor-not-allowed text-xs sm:text-sm"
-              disabled
-            >
-              <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span>Import</span>
-            </button>
+
+          <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+            <div className="p-3 bg-rose-50 rounded-xl w-fit">
+              <Plus className="h-6 w-6 text-[#64303A]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Add Member</h3>
+              <p className="text-sm text-gray-500 font-medium">Grow your family tree</p>
+            </div>
           </div>
-        </div>
-      </div>
+        </button>
+      </Link>
+
+      <Link href="/story" className="group block">
+        <button className="w-full h-full p-6 text-left rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 group-hover:-translate-y-1 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-20">
+            <BookOpen className="h-24 w-24 text-white" />
+          </div>
+
+          <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl w-fit">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white mb-1">My Story</h3>
+              <p className="text-sm text-blue-100 font-medium">Record your journey</p>
+            </div>
+          </div>
+        </button>
+      </Link>
+
+      <Link href="/timeline" className="group block">
+        <button className="w-full h-full p-6 text-left rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <MapPin className="h-24 w-24 text-emerald-600" />
+          </div>
+
+          <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+            <div className="p-3 bg-emerald-50 rounded-xl w-fit">
+              <MapPin className="h-6 w-6 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Timeline</h3>
+              <p className="text-sm text-gray-500 font-medium">View family history</p>
+            </div>
+          </div>
+        </button>
+      </Link>
     </div>
   );
 };

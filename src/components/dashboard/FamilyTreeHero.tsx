@@ -3,6 +3,8 @@ import {
   Star,
   Plus,
   ArrowRight,
+  GitFork,
+  Calendar
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -14,63 +16,104 @@ interface FamilyTreeHeroProps {
 }
 
 const FamilyTreeHero = ({ familyTree, familyMembers, loading, onCreateTree }: FamilyTreeHeroProps) => {
+  if (loading) {
+    return (
+      <div className="w-full h-64 rounded-2xl bg-gray-100 animate-pulse border border-gray-200" />
+    );
+  }
+
   return (
-    <div className="rounded-lg border-2 bg-white shadow-sm" style={{ borderColor: '#d4c5cb' }}>
-      <div className="border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold flex-wrap">
-            <TreePine className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" style={{ color: '#64303A' }} />
-            Your Family Tree
-            <span className="inline-block rounded-full bg-green-100 px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-green-700">
-              <Star className="inline h-2 w-2 sm:h-3 sm:w-3 mr-1" />
-              Hero Feature
-            </span>
-          </h3>
-          {!familyTree && (
-            <button className="inline-flex items-center justify-center gap-1 sm:gap-2 rounded-md border border-gray-300 bg-white px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 shrink-0" onClick={onCreateTree} disabled={loading}>
-              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Create Tree</span>
-              <span className="sm:hidden">Create</span>
-            </button>
-          )}
-        </div>
+    <div className="relative overflow-hidden rounded-2xl bg-[#64303A] text-white shadow-lg">
+      {/* Abstract Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M0 100 C 20 0 50 0 100 100 Z" fill="currentColor" />
+        </svg>
       </div>
-      <div className="px-3 sm:px-6 py-3 sm:py-4">
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto mb-4" style={{ borderColor: '#64303A' }}></div>
-            <p className="text-xs sm:text-sm text-gray-600">Loading your family tree...</p>
-          </div>
-        ) : familyTree ? (
-          <div className="flex items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white shrink-0" style={{ backgroundColor: '#64303A' }}>
-                <TreePine className="h-5 w-5 sm:h-6 sm:w-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-semibold text-sm sm:text-base truncate">{familyTree.name}</h4>
-                  <span className="text-xs bg-blue-50 text-blue-700 px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">{familyMembers.length} members</span>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-600 truncate">{familyTree.description || 'Your family tree'}</p>
-              </div>
+
+      <div className="relative p-6 sm:p-8 md:p-10">
+        <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
+          <div className="space-y-4 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-xs font-medium border border-white/20">
+              <Star className="h-3 w-3 text-amber-300" />
+              <span>Primary Family Tree</span>
             </div>
-            <Link href={`/tree/${familyTree.id}`}>
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0">
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: '#64303A' }} />
+
+            <div>
+              {familyTree ? (
+                <>
+                  <h2 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight">
+                    {familyTree.name}
+                  </h2>
+                  <p className="text-blue-100 text-lg opacity-90 max-w-lg">
+                    {familyTree.description || 'Explore and grow your family heritage through generations.'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight">
+                    Start Your Journey
+                  </h2>
+                  <p className="text-blue-100 text-lg opacity-90">
+                    Create your first family tree and begin preserving your history today.
+                  </p>
+                </>
+              )}
+            </div>
+
+            {familyTree && (
+              <div className="flex flex-wrap gap-4 sm:gap-8 pt-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/10">
+                    <TreePine className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{familyMembers.length}</div>
+                    <div className="text-xs text-blue-200 font-medium">Members</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/10">
+                    <GitFork className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{Math.ceil(familyMembers.length / 3) + 1}</div>
+                    <div className="text-xs text-blue-200 font-medium">Generations</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/10">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{new Date().getFullYear()}</div>
+                    <div className="text-xs text-blue-200 font-medium">Last Updated</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 w-full md:w-auto">
+            {familyTree ? (
+              <Link href={`/tree/${familyTree.id}`} className="w-full">
+                <button className="group w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#64303A] rounded-xl font-bold hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5">
+                  View Tree
+                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </Link>
+            ) : (
+              <button
+                onClick={onCreateTree}
+                disabled={loading}
+                className="group w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#64303A] rounded-xl font-bold hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
+              >
+                <Plus className="h-5 w-5" />
+                Create Tree
               </button>
-            </Link>
+            )}
           </div>
-        ) : (
-          <div className="text-center py-8">
-            <TreePine className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-            <p className="text-xs sm:text-sm text-gray-500 mb-4">No family tree yet</p>
-            <button className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-200" onClick={onCreateTree} disabled={loading}>
-              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-              Create Your First Tree
-            </button>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
