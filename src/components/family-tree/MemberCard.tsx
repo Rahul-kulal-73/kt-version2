@@ -49,6 +49,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
             {hasHiddenFamily && !isRoot && (
                 <button
                     className={styles.dumbbellBtn}
+                    style={{ border: '2px solid green' }}
                     title="View Family"
                     onClick={(e) => {
                         e.stopPropagation();
@@ -70,10 +71,11 @@ export const MemberCard: React.FC<MemberCardProps> = ({
                 </div>
                 {member.is_root && (
                     <div
-                        className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 rounded-full p-1 shadow-xs border border-white z-20"
+                        className="absolute -top-2 left-1/2 -translate-x-1/5 bg-yellow-400 text-yellow-900 rounded-full p-1 shadow-sm border-[1.5px] border-white z-20 flex items-center justify-center"
                         title="Tree Owner"
+                        style={{ width: '20px', height: '20px' }}
                     >
-                        <Crown size={12} fill="currentColor" />
+                        <Crown size={12} fill="currentColor" strokeWidth={2.5} />
                     </div>
                 )}
             </div>
