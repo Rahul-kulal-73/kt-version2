@@ -535,12 +535,12 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
             const pIds = parentsMap.get(targetMember.id) || [];
             if (pIds.length > 0) {
                 const parent = personMap.get(pIds[0]);
-                onAddMember('child', parent);
+                onAddMember('child', parent, gender);
             } else {
                 alert("Cannot add sibling to a root node without parents. Add a parent first.");
             }
         } else {
-            onAddMember(relationType, targetMember);
+            onAddMember(relationType, targetMember, gender);
         }
         setPickerTargetId(null);
     };
@@ -659,7 +659,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                     })}
                 </div>
             </div>
-        </Card>
+        </Card >
     );
 });
 

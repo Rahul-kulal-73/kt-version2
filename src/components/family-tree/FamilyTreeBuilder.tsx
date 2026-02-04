@@ -313,7 +313,7 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
         }
     };
 
-    const handleOpenAddMember = (relationType?: 'parent' | 'spouse' | 'child' | 'sibling' | null, relatedTo?: FamilyMember | null) => {
+    const handleOpenAddMember = (relationType?: 'parent' | 'spouse' | 'child' | 'sibling' | null, relatedTo?: FamilyMember | null, gender?: 'male' | 'female') => {
         // We only support parent/spouse/child for now in terms of logic, sibling is just a placeholder in picker that maps to parent logic usually
         // But for now let's just cast it or ignore sibling specific logic if not implemented
         const supportedType = (relationType === 'sibling') ? 'child' : relationType; // If sibling, it means adding child to parent? No, "Add Sibling" means adding another child to MY parents.
@@ -333,7 +333,26 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
             }
         }
 
-        setNewMemberData(prev => ({ ...prev, last_name: initialLastName }));
+        setNewMemberData(prev => {
+            let defaultGender = gender || '';
+            const relatedGender = relatedTo?.gender;
+
+            // Logic for Spouse: Opposite gender
+            if (relationType === 'spouse' && relatedGender && !defaultGender) {
+                defaultGender = relatedGender === 'male' ? 'female' : 'male';
+            }
+
+            // Logic for Parent: If gender is passed (Father/Mother), uses that.
+            // If not passed (generic 'Add Parent'), default to logic?? Usually Picker sends it.
+
+            // Logic for Child: If gender passed (Son/Daughter), use that.
+
+            return {
+                ...prev,
+                last_name: initialLastName,
+                gender: defaultGender
+            };
+        });
         setIsAddingMember(true);
     };
 
