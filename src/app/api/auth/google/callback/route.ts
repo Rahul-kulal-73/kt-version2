@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
+import { getLocationFromIp } from '@/lib/location';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
@@ -73,7 +74,13 @@ export async function GET(request: Request) {
         }
 
         // 4. Update Tracking
+        const ip = request.headers.get('x-forwarded-for') || 'Unknown';
+        const finalIp = ip === '::1' ? '127.0.0.1 (Localhost)' : ip;
+        const location = await getLocationFromIp(ip);
+
         user.last_login = new Date();
+        user.last_ip = finalIp;
+        user.last_location = location;
         await user.save();
 
         // 5. Generate Token & Cookie
