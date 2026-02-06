@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,7 @@ import { Mail, Phone, ArrowLeft, Check, Eye, EyeOff } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
 
-const Register = () => {
+const RegisterContent = () => {
   const [firstName, setFirstName] = useState('');
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -287,6 +287,14 @@ const Register = () => {
         </Card>
       </div>
     </div>
+  );
+};
+
+const Register = () => {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F5F2E9] flex items-center justify-center p-4">Loading...</div>}>
+      <RegisterContent />
+    </Suspense>
   );
 };
 
