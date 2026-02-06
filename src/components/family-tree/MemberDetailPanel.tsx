@@ -22,6 +22,7 @@ interface MemberDetailPanelProps {
     onDelete: (id: string) => Promise<void>;
     onUpdateRelationship: (id: string, data: Partial<Relationship>) => Promise<void>;
     onAddRelationship: () => void;
+    hasChildren?: boolean;
 }
 
 export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
@@ -35,6 +36,7 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
     onDelete,
     onUpdateRelationship,
     onAddRelationship,
+    hasChildren = false,
 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Partial<FamilyMember>>({});
@@ -307,6 +309,7 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
                                     onChange={(e) => setEditData(prev => ({ ...prev, death_date: e.target.value }))}
                                     placeholder="Death date (if applicable)"
                                     className="focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900"
+                                    max={new Date().toISOString().split('T')[0]}
                                 />
                             </div>
 
@@ -463,10 +466,22 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
                             <Separator />
 
                             {!member.is_root && (
-                                <Button variant="destructive" className="w-full text-white bg-red-600 hover:bg-red-700" onClick={handleDelete}>
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete Member
-                                </Button>
+                                <div className="space-y-2">
+                                    <Button
+                                        variant="destructive"
+                                        className="w-full text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={handleDelete}
+                                        disabled={hasChildren}
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete Member
+                                    </Button>
+                                    {hasChildren && (
+                                        <p className="text-xs text-amber-600 text-center bg-amber-50 p-2 rounded border border-amber-200">
+                                            Cannot delete while children are connected. Please remove children first.
+                                        </p>
+                                    )}
+                                </div>
                             )}
                         </>
                     )}

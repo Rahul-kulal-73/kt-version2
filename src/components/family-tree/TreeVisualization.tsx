@@ -30,6 +30,7 @@ interface Position {
 
 export interface TreeVisualizationHandle {
     getExportData: (options?: { scale?: number }) => Promise<{ dataUrl: string; width: number; height: number }>;
+    focusNode: (memberId: string) => void;
 }
 
 export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeVisualizationProps>(({
@@ -480,36 +481,47 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
             if (!contentRef.current) throw new Error('Tree content not found');
 
             // 1. Calculate Bounding Box
-            let minX = 0, minY = 0, maxX = 800, maxY = 600;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
             const vals = Object.values(layout);
-            if (vals.length > 0) {
-                minX = Math.min(...vals.map(p => p.x));
-                maxX = Math.max(...vals.map(p => p.x + CARD_W));
-                minY = Math.min(...vals.map(p => p.y));
-                maxY = Math.max(...vals.map(p => p.y + CARD_H));
+
+            if (vals.length === 0) {
+                minX = 0; maxX = 800; minY = 0; maxY = 600;
+            } else {
+                vals.forEach(p => {
+                    if (p.x < minX) minX = p.x;
+                    if (p.x + CARD_W > maxX) maxX = p.x + CARD_W;
+                    if (p.y < minY) minY = p.y;
+                    if (p.y + CARD_H > maxY) maxY = p.y + CARD_H;
+                });
             }
 
-            const PADDING = 50;
-            const fullWidth = maxX - minX + (PADDING * 2);
-            const fullHeight = maxY - minY + (PADDING * 2);
-
+            const PADDING = 100;
+            const fullWidth = (maxX - minX) + (PADDING * 2);
+            const fullHeight = (maxY - minY) + (PADDING * 2);
             const exportScale = options?.scale || 1.0;
 
-            // 2. Preserve Original State
-            const originalTransform = contentRef.current.style.transform;
-            const originalWidth = contentRef.current.style.width;
-            const originalHeight = contentRef.current.style.height;
+            // Preserve SVG State
+            const svgEl = contentRef.current.querySelector('svg');
+            const originalSvgWidth = svgEl?.getAttribute('width');
+            const originalSvgHeight = svgEl?.getAttribute('height');
 
-            // 3. Apply "Reset" Styles to force full visibility in DOM
-            // We shift the content so its top-left (minX, minY) moves to (PADDING, PADDING)
-            // And we force the container to be large enough.
-            contentRef.current.style.transform = `translate(${-minX + PADDING}px, ${-minY + PADDING}px)`;
-            contentRef.current.style.width = `${fullWidth}px`;
-            contentRef.current.style.height = `${fullHeight}px`;
+            // Preserve Parent Overflow (Card) to prevent clipping during capture
+            const parentEl = containerRef.current?.parentElement;
+            const originalParentOverflow = parentEl ? parentEl.style.overflow : '';
+
+            // 3. Apply Temporary Styles for Full Visibility (Only minimum necessary on real DOM)
+            // Unlock parent to allow full expansion
+            if (parentEl) parentEl.style.overflow = 'visible';
+
+            // Resize SVG on real DOM (Minimally visible, ensures connectors render)
+            if (svgEl) {
+                svgEl.setAttribute('width', `${fullWidth}`);
+                svgEl.setAttribute('height', `${fullHeight}`);
+            }
 
             try {
-                // Wait a microtask to allow style calc? Usually not needed strictly for sync paint but good practice
-                // However, toPng captures current state.
+                // Wait for repaint/reflow to ensure SVG resize is applied
+                await new Promise(resolve => setTimeout(resolve, 100));
 
                 // 4. Capture
                 const dataUrl = await toPng(contentRef.current, {
@@ -517,12 +529,16 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                     width: fullWidth * exportScale,
                     height: fullHeight * exportScale,
                     style: {
-                        // Apply scale here during capture transform
-                        transform: `scale(${exportScale})`,
+                        // Override styles on the CLONE to avoid "moving" the real tree
+                        transform: `translate(${-minX + PADDING}px, ${-minY + PADDING}px) scale(${exportScale})`,
                         transformOrigin: 'top left',
                         width: `${fullWidth}px`,
-                        height: `${fullHeight}px`
-                    }
+                        height: `${fullHeight}px`,
+                        transition: 'none', // Ensure check for transition
+                        overflow: 'visible'
+                    },
+                    // Ensure fonts and images are fully loaded
+                    cacheBust: true,
                 });
 
                 return {
@@ -532,12 +548,39 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                 };
             } finally {
                 // 5. Restore Original State
-                if (contentRef.current) {
-                    contentRef.current.style.transform = originalTransform;
-                    contentRef.current.style.width = originalWidth;
-                    contentRef.current.style.height = originalHeight;
+                if (svgEl) {
+                    if (originalSvgWidth) svgEl.setAttribute('width', originalSvgWidth);
+                    if (originalSvgHeight) svgEl.setAttribute('height', originalSvgHeight);
+                }
+                if (parentEl) {
+                    parentEl.style.overflow = originalParentOverflow;
                 }
             }
+        },
+        focusNode: (memberId: string) => {
+            const pos = layout[memberId];
+            if (!pos) return;
+
+            const contW = containerRef.current?.clientWidth || window.innerWidth;
+            const contH = containerRef.current?.clientHeight || window.innerHeight;
+
+            // Target zoom level
+            const targetZoom = 1;
+
+            // Center the node
+            // Formula: Center = (BoxSize - NodeSize*Zoom) / 2 - NodePos*Zoom
+            // We want node center at screen center
+            // Node Center X relative to canvas = pos.x + CARD_W/2
+            // Node Center Y relative to canvas = pos.y + CARD_H/2
+
+            const nodeCenterX = pos.x + CARD_W / 2;
+            const nodeCenterY = pos.y + CARD_H / 2;
+
+            const newPanX = (contW / 2) - (nodeCenterX * targetZoom);
+            const newPanY = (contH / 2) - (nodeCenterY * targetZoom);
+
+            setZoom(targetZoom);
+            setPan({ x: newPanX, y: newPanY });
         }
     }));
 

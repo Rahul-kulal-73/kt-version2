@@ -29,14 +29,30 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const calculateAge = (birthDateStr?: string, deathDateStr?: string) => {
+    if (!birthDateStr) return '';
+    const birthDate = new Date(birthDateStr);
+    const endDate = deathDateStr ? new Date(deathDateStr) : new Date();
+
+    let age = endDate.getFullYear() - birthDate.getFullYear();
+    const m = endDate.getMonth() - birthDate.getMonth();
+
+    if (m < 0 || (m === 0 && endDate.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (isNaN(age) || age < 0) return '';
+    return `(${age} yrs)`;
+  };
+
   const isDeceased = node.member.death_date;
   const initials = `${node.member.first_name[0]}${node.member.last_name?.[0] || ''}`;
   const genderColor =
     node.member.gender === 'male'
       ? '#3b82f6'
       : node.member.gender === 'female'
-      ? '#ec4899'
-      : '#9ca3af';
+        ? '#ec4899'
+        : '#9ca3af';
 
   const cardWidth = node.width;
   const cardHeight = node.height;
@@ -69,8 +85,8 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
             isSelected
               ? '#3b82f6'
               : isHovering
-              ? '#e5e7eb'
-              : '#d1d5db'
+                ? '#e5e7eb'
+                : '#d1d5db'
           }
           strokeWidth={isSelected ? 2 : 1}
           style={{
@@ -149,8 +165,8 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           {node.member.last_name}
         </text>
 
-        {/* Birth date */}
-        {node.member.birth_date && (
+        {/* Birth date - Only show if alive (not deceased) */}
+        {!isDeceased && node.member.birth_date && (
           <text
             x={x + cardWidth / 2}
             y={y + cardHeight - 6}
@@ -158,7 +174,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
             fontSize="10"
             fill="#9ca3af"
           >
-            b. {formatDate(node.member.birth_date)}
+            b. {formatDate(node.member.birth_date)} {calculateAge(node.member.birth_date)}
           </text>
         )}
 
@@ -171,7 +187,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
             fontSize="9"
             fill="#ef4444"
           >
-            † {formatDate(node.member.death_date)}
+            † {formatDate(node.member.death_date)} {calculateAge(node.member.birth_date, node.member.death_date)}
           </text>
         )}
       </g>
@@ -210,8 +226,8 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
               node.spouse.gender === 'male'
                 ? '#3b82f6'
                 : node.spouse.gender === 'female'
-                ? '#ec4899'
-                : '#9ca3af'
+                  ? '#ec4899'
+                  : '#9ca3af'
             }
             opacity={0.8}
           />
@@ -227,8 +243,8 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
               node.spouse.gender === 'male'
                 ? '#3b82f6'
                 : node.spouse.gender === 'female'
-                ? '#ec4899'
-                : '#9ca3af'
+                  ? '#ec4899'
+                  : '#9ca3af'
             }
             opacity={0.1}
           />
@@ -270,7 +286,18 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           </text>
 
           {/* Birth date */}
-          {node.spouse.birth_date && (
+          {/* Birth/Death date for Spouse */}
+          {node.spouse.death_date ? (
+            <text
+              x={x + spouseOffsetX + cardWidth / 2}
+              y={y + cardHeight - 6}
+              textAnchor="middle"
+              fontSize="9"
+              fill="#ef4444"
+            >
+              † {formatDate(node.spouse.death_date)} {calculateAge(node.spouse.birth_date, node.spouse.death_date)}
+            </text>
+          ) : node.spouse.birth_date ? (
             <text
               x={x + spouseOffsetX + cardWidth / 2}
               y={y + cardHeight - 6}
@@ -278,9 +305,9 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
               fontSize="10"
               fill="#9ca3af"
             >
-              b. {formatDate(node.spouse.birth_date)}
+              b. {formatDate(node.spouse.birth_date)} {calculateAge(node.spouse.birth_date)}
             </text>
-          )}
+          ) : null}
         </g>
       )}
 

@@ -21,7 +21,8 @@ import {
     FileText,
     Truck,
     UserPlus,
-    Heart
+    Heart,
+    Search
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,6 +40,14 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/sonner';
 import { jsPDF, GState } from 'jspdf';
+import {
+    CommandDialog,
+    CommandInput,
+    CommandList,
+    CommandEmpty,
+    CommandGroup,
+    CommandItem,
+} from '@/components/ui/command';
 
 const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
     const {
@@ -60,6 +69,18 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
     const [isAddingRelationship, setIsAddingRelationship] = useState(false);
     const [isCreatingMember, setIsCreatingMember] = useState(false);
     const [initGender, setInitGender] = useState<string>('male');
+    const [openSearch, setOpenSearch] = useState(false);
+
+    React.useEffect(() => {
+        const down = (e: KeyboardEvent) => {
+            if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault()
+                setOpenSearch((open) => !open)
+            }
+        }
+        document.addEventListener("keydown", down)
+        return () => document.removeEventListener("keydown", down)
+    }, []);
 
     const [addContext, setAddContext] = useState<{
         relationType?: 'parent' | 'spouse' | 'child';
@@ -348,9 +369,15 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
             // Logic for Child: If gender passed (Son/Daughter), use that.
 
             return {
-                ...prev,
+                first_name: '',
+                middle_name: '',
                 last_name: initialLastName,
-                gender: defaultGender
+                gender: defaultGender,
+                birth_date: '',
+                death_date: '',
+                photo_url: '',
+                marriage_date: '',
+                divorce_date: '',
             };
         });
         setIsAddingMember(true);
@@ -432,8 +459,6 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
             if (user?.plan_type !== 'pro') {
                 try {
                     const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
 
                     if (ctx) {
@@ -444,32 +469,35 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                             img.onload = resolve;
                         });
 
+                        // Use actual image dimensions to avoid clipping on high-DPI screens
+                        canvas.width = img.naturalWidth;
+                        canvas.height = img.naturalHeight;
+
                         // Draw original image
                         ctx.drawImage(img, 0, 0);
 
                         // Configure Watermark Styles
                         ctx.fillStyle = 'rgba(150, 150, 150, 0.4)'; // Gray with 40% opacity
                         // Font size logic: ~1/10th of width, min 40px
-                        const fontSize = Math.max(40, Math.floor(width / 10));
+                        const fontSize = Math.max(40, Math.floor(canvas.width / 10));
                         ctx.font = `bold ${fontSize}px Helvetica, Arial, sans-serif`;
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
 
                         // Calculate visual center and rotation
-                        const angleRad = Math.atan(height / width);
-                        const cx = width / 2;
-                        const cy = height / 2;
+                        const angleRad = Math.atan(canvas.height / canvas.width);
+                        const cx = canvas.width / 2;
+                        const cy = canvas.height / 2;
 
                         // Rotate and Draw
                         ctx.save();
                         ctx.translate(cx, cy);
-                        ctx.rotate(-angleRad); // Canvas rotates clockwise, so negative for bottom-left to top-right? 
-                        // Wait, PDF was bottom-left to top-right which is positive angle in math but PDF coords might differ.
                         // Standard math: atan(y/x). 
-                        // Let's deduce: Top-Left is 0,0. Bottom-Right is w,h. 
-                        // We want BL (0, h) to TR (w, 0).
-                        // Vector is (w, -h). Angle is atan(-h/w).
-                        ctx.rotate(Math.atan(-height / width));
+                        // Top-Left (0,0) to Bottom-Right (w,h) means positive y is down.
+                        // We want "Bottom-Left" (visual) to "Top-Right" (visual).
+                        // That means vector (1, -1) visually, but in canvas coords (1, -1).
+                        // Actually, let's just stick to the angle calculation that works.
+                        ctx.rotate(Math.atan(-canvas.height / canvas.width));
 
                         ctx.fillText('Kutumba Tree', 0, 0);
                         ctx.restore();
@@ -604,6 +632,17 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
     };
 
     const handleDeleteMember = async (id: string) => {
+        // Validation: Check if member has children
+        const hasChildren = relationships.some(r =>
+            r.relationship_type === 'parent_child' && r.person1_id === id
+        );
+
+        if (hasChildren) {
+            const errorMsg = 'Cannot delete member: This person has connected children. Please remove the children or parent links first.';
+            toast.error(errorMsg);
+            throw new Error(errorMsg);
+        }
+
         await deleteFamilyMember(id);
         setSelectedMember(null);
         setIsDetailPanelOpen(false);
@@ -762,6 +801,19 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                             <Button
                                 variant="outline"
                                 size="sm"
+                                onClick={() => setOpenSearch(true)}
+                                className="inline-flex h-9 w-9 lg:w-64 lg:justify-between lg:px-3 p-0 lg:py-2 items-center text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-all font-normal"
+                                title="Search (Ctrl + K)"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Search className="h-4 w-4" />
+                                    <span className="hidden lg:inline text-xs">Search members...</span>
+                                </div>
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={handleShare}
                                 className="hidden sm:inline-flex h-9 text-xs font-medium border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                             >
@@ -863,7 +915,42 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                     setIsDetailPanelOpen(false);
                     setIsAddingRelationship(true);
                 }}
+                hasChildren={relationships.some(r =>
+                    r.relationship_type === 'parent_child' &&
+                    r.person1_id === selectedMember?.id
+                )}
             />
+
+            <CommandDialog open={openSearch} onOpenChange={setOpenSearch}>
+                <CommandInput placeholder="Search family members..." />
+                <CommandList>
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandGroup heading="Members">
+                        {familyMembers.map((member) => (
+                            <CommandItem
+                                key={member.id}
+                                value={`${member.first_name} ${member.middle_name || ''} ${member.last_name}`}
+                                onSelect={() => {
+                                    setOpenSearch(false);
+                                    treeRef.current?.focusNode(member.id);
+                                    handleSelectMember(member);
+                                }}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+                                        {member.photo_url ? (
+                                            <img src={member.photo_url} alt="" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <User className="h-3 w-3 text-gray-400" />
+                                        )}
+                                    </div>
+                                    <span>{member.first_name} {member.middle_name ? `${member.middle_name} ` : ''}{member.last_name}</span>
+                                </div>
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                </CommandList>
+            </CommandDialog>
 
             <Dialog open={isAddingMember} onOpenChange={setIsAddingMember}>
                 <DialogContent className="max-w-md w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
@@ -1021,6 +1108,7 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                                 value={newMemberData.death_date}
                                 onChange={(e) => setNewMemberData(prev => ({ ...prev, death_date: e.target.value }))}
                                 className="focus-visible:outline-none ring-transparent focus-visible:ring-0 focus-visible:border-orange-900 text-xs sm:text-sm"
+                                max={new Date().toISOString().split('T')[0]}
                             />
                         </div>
 

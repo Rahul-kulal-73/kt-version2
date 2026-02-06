@@ -6,12 +6,13 @@ import Phase2Features from './Phase2Features';
 interface LeftSectionProps {
   familyTree: any;
   familyMembers: any[];
+  relationships: any[];
   loading: boolean;
   onCreateTree: () => void;
   user: any;
 }
 
-const LeftSection = ({ familyTree, familyMembers, loading, onCreateTree, user }: LeftSectionProps) => {
+const LeftSection = ({ familyTree, familyMembers, relationships, loading, onCreateTree, user }: LeftSectionProps) => {
   return (
     <div className="lg:col-span-8 space-y-4 sm:space-y-8">
       <QuickActions familyTree={familyTree} />
@@ -19,6 +20,7 @@ const LeftSection = ({ familyTree, familyMembers, loading, onCreateTree, user }:
       <FamilyTreeHero
         familyTree={familyTree}
         familyMembers={familyMembers}
+        relationships={relationships}
         loading={loading}
         onCreateTree={onCreateTree}
       />

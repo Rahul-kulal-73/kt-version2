@@ -26,8 +26,27 @@ export const MemberCard: React.FC<MemberCardProps> = ({
     hasHiddenFamily,
     onViewFamily,
 }) => {
-    const birthYear = member.birth_date ? new Date(member.birth_date).getFullYear() : '';
+    const birthDateObj = member.birth_date ? new Date(member.birth_date) : null;
+    const birthYear = birthDateObj ? birthDateObj.getFullYear() : '';
     const isDeceased = !!member.death_date;
+
+    const calculateAge = (birthDateStr?: string, deathDateStr?: string) => {
+        if (!birthDateStr) return '';
+        const birthDate = new Date(birthDateStr);
+        const endDate = deathDateStr ? new Date(deathDateStr) : new Date();
+
+        let age = endDate.getFullYear() - birthDate.getFullYear();
+        const m = endDate.getMonth() - birthDate.getMonth();
+
+        if (m < 0 || (m === 0 && endDate.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        if (isNaN(age) || age < 0) return '';
+        return `${age} yrs`;
+    };
+
+    const age = calculateAge(member.birth_date, member.death_date);
 
     const genderClass = member.gender === 'male' ? styles.male : member.gender === 'female' ? styles.female : styles.other;
     const rootClass = isRoot ? styles.focusedRoot : '';
@@ -87,7 +106,9 @@ export const MemberCard: React.FC<MemberCardProps> = ({
                 </div>
                 <div className={styles.details}>
                     {birthYear}
-                    {isDeceased && ' - Deceased'}
+                    {isDeceased && member.death_date && ` - ${new Date(member.death_date).getFullYear()}`}
+                    {age && ` (${age})`}
+                    {isDeceased && !member.death_date && ' - Deceased'}
                 </div>
             </div>
 
