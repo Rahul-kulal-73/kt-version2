@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { FamilyMember, Relationship } from '@/components/hooks/useFamilyTree';
 import { cn } from '@/lib/utils';
 import { toast } from '@/components/ui/sonner';
+import { CldUploadWidget } from 'next-cloudinary';
 
 interface MemberDetailPanelProps {
     member: FamilyMember | null;
@@ -41,18 +42,7 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Partial<FamilyMember>>({});
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setEditData(prev => ({ ...prev, photo_url: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+    // Removed fileInputRef and handleFileChange as they are replaced by CldUploadWidget
 
     useEffect(() => {
         if (member) {
@@ -210,25 +200,41 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
                         <div className="space-y-4">
                             {/* Edit Avatar */}
                             <div className="flex justify-center mb-4">
-                                <div
-                                    className="relative w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-50 transition-colors"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    {editData.photo_url ? (
-                                        <img src={editData.photo_url} alt="Preview" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="text-center text-gray-400">
-                                            <Edit2 className="h-6 w-6 mx-auto mb-1" />
-                                            <span className="text-[10px]">Change</span>
-                                        </div>
-                                    )}
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleFileChange}
-                                    />
+                                <div className="flex justify-center mb-4">
+                                    <CldUploadWidget
+                                        signatureEndpoint="/api/sign-cloudinary-params"
+                                        options={{
+                                            sources: ['local', 'url', 'camera'],
+                                            clientAllowedFormats: ['image'],
+                                            multiple: false,
+                                            maxFiles: 1,
+                                        }}
+                                        onSuccess={(result) => {
+                                            if (typeof result.info === 'object' && result?.info?.secure_url) {
+                                                const optimizedUrl = result.info.secure_url.replace(
+                                                    '/upload/',
+                                                    '/upload/c_fill,g_face,w_128,h_128,q_auto/'
+                                                );
+                                                setEditData(prev => ({ ...prev, photo_url: optimizedUrl }));
+                                            }
+                                        }}
+                                    >
+                                        {({ open }) => (
+                                            <div
+                                                className="relative w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-50 transition-colors"
+                                                onClick={() => open()}
+                                            >
+                                                {editData.photo_url ? (
+                                                    <img src={editData.photo_url} alt="Preview" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="text-center text-gray-400">
+                                                        <Edit2 className="h-6 w-6 mx-auto mb-1" />
+                                                        <span className="text-[10px]">Change</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </CldUploadWidget>
                                 </div>
                             </div>
 

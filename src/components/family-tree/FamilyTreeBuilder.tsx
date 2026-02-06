@@ -48,6 +48,7 @@ import {
     CommandGroup,
     CommandItem,
 } from '@/components/ui/command';
+import { CldUploadWidget } from 'next-cloudinary';
 
 const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
     const {
@@ -99,18 +100,7 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
         divorce_date: '',
     });
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setNewMemberData(prev => ({ ...prev, photo_url: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+    // Removed fileInputRef as it is no longer needed with CldUploadWidget
 
     const spouseGenderConflict =
         addContext.relationType === 'spouse' &&
@@ -709,20 +699,70 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                                 <div className="text-sm text-gray-500">{user.email}</div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Select your gender to begin:</Label>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div
-                                        className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${newMemberData.gender === 'male' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                                        onClick={() => setNewMemberData(prev => ({ ...prev, gender: 'male' }))}
-                                    >
-                                        <div className="font-semibold text-blue-700">Male</div>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Profile Photo</Label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-16 w-16 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
+                                            {newMemberData.photo_url ? (
+                                                <img src={newMemberData.photo_url} alt="Preview" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <User className="h-8 w-8 text-gray-400" />
+                                            )}
+                                        </div>
+                                        <CldUploadWidget
+                                            signatureEndpoint="/api/sign-cloudinary-params"
+                                            options={{
+                                                sources: ['local', 'url', 'camera'],
+                                                clientAllowedFormats: ['image'],
+                                                multiple: false,
+                                                maxFiles: 1,
+                                            }}
+                                            onSuccess={(result) => {
+                                                if (typeof result.info === 'object' && result?.info?.secure_url) {
+                                                    const optimizedUrl = result.info.secure_url.replace(
+                                                        '/upload/',
+                                                        '/upload/c_fill,g_face,w_128,h_128,q_auto/'
+                                                    );
+                                                    setNewMemberData(prev => ({ ...prev, photo_url: optimizedUrl }));
+                                                    toast.success('Photo uploaded successfully');
+                                                }
+                                            }}
+                                            onError={() => {
+                                                toast.error('Failed to upload photo');
+                                            }}
+                                        >
+                                            {({ open }) => (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => open()}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <ImageIcon className="h-4 w-4" />
+                                                    Upload Photo
+                                                </Button>
+                                            )}
+                                        </CldUploadWidget>
                                     </div>
-                                    <div
-                                        className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${newMemberData.gender === 'female' ? 'border-pink-500 bg-pink-50' : 'border-gray-200 hover:border-gray-300'}`}
-                                        onClick={() => setNewMemberData(prev => ({ ...prev, gender: 'female' }))}
-                                    >
-                                        <div className="font-semibold text-pink-700">Female</div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Select your gender to begin:</Label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div
+                                            className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${newMemberData.gender === 'male' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                            onClick={() => setNewMemberData(prev => ({ ...prev, gender: 'male' }))}
+                                        >
+                                            <div className="font-semibold text-blue-700">Male</div>
+                                        </div>
+                                        <div
+                                            className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${newMemberData.gender === 'female' ? 'border-pink-500 bg-pink-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                            onClick={() => setNewMemberData(prev => ({ ...prev, gender: 'female' }))}
+                                        >
+                                            <div className="font-semibold text-pink-700">Female</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -961,26 +1001,40 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
 
                         {/* Image Upload for New Member */}
                         <div className="flex justify-center mb-4">
-                            <div
-                                className="relative w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-50 transition-colors"
-                                onClick={() => fileInputRef.current?.click()}
+                            <CldUploadWidget
+                                signatureEndpoint="/api/sign-cloudinary-params"
+                                options={{
+                                    sources: ['local', 'url', 'camera'],
+                                    clientAllowedFormats: ['image'],
+                                    multiple: false,
+                                    maxFiles: 1,
+                                }}
+                                onSuccess={(result) => {
+                                    if (typeof result.info === 'object' && result?.info?.secure_url) {
+                                        const optimizedUrl = result.info.secure_url.replace(
+                                            '/upload/',
+                                            '/upload/c_fill,g_face,w_128,h_128,q_auto/'
+                                        );
+                                        setNewMemberData(prev => ({ ...prev, photo_url: optimizedUrl }));
+                                    }
+                                }}
                             >
-                                {newMemberData.photo_url ? (
-                                    <img src={newMemberData.photo_url} alt="Preview" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="text-center text-gray-400">
-                                        <ImageIcon className="h-8 w-8 mx-auto mb-1" />
-                                        <span className="text-xs">Upload Photo</span>
+                                {({ open }) => (
+                                    <div
+                                        className="relative w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-50 transition-colors"
+                                        onClick={() => open()}
+                                    >
+                                        {newMemberData.photo_url ? (
+                                            <img src={newMemberData.photo_url} alt="Preview" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="text-center text-gray-400">
+                                                <ImageIcon className="h-8 w-8 mx-auto mb-1" />
+                                                <span className="text-xs">Upload Photo</span>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                />
-                            </div>
+                            </CldUploadWidget>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
