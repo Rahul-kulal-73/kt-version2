@@ -30,6 +30,7 @@ interface Position {
 
 export interface TreeVisualizationHandle {
     getExportData: (options?: { scale?: number }) => Promise<{ dataUrl: string; width: number; height: number }>;
+    focusNode: (memberId: string) => void;
 }
 
 export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeVisualizationProps>(({
@@ -520,6 +521,31 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                 width: fullWidth * exportScale,
                 height: fullHeight * exportScale
             };
+        },
+        focusNode: (memberId: string) => {
+            const pos = layout[memberId];
+            if (!pos) return;
+
+            const contW = containerRef.current?.clientWidth || window.innerWidth;
+            const contH = containerRef.current?.clientHeight || window.innerHeight;
+
+            // Target zoom level
+            const targetZoom = 1;
+
+            // Center the node
+            // Formula: Center = (BoxSize - NodeSize*Zoom) / 2 - NodePos*Zoom
+            // We want node center at screen center
+            // Node Center X relative to canvas = pos.x + CARD_W/2
+            // Node Center Y relative to canvas = pos.y + CARD_H/2
+
+            const nodeCenterX = pos.x + CARD_W / 2;
+            const nodeCenterY = pos.y + CARD_H / 2;
+
+            const newPanX = (contW / 2) - (nodeCenterX * targetZoom);
+            const newPanY = (contH / 2) - (nodeCenterY * targetZoom);
+
+            setZoom(targetZoom);
+            setPan({ x: newPanX, y: newPanY });
         }
     }));
 
