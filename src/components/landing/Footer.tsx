@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Globe, Mail, Phone, TreePine, Facebook, Twitter, Instagram, Linkedin, Heart } from "lucide-react";
+import { Globe, Mail, Phone, TreePine } from "lucide-react";
 
 const footerSections = {
   tools: {
@@ -13,6 +13,21 @@ const footerSections = {
       "Multi-Language Support",
     ],
   },
+  features: {
+    title: "Features",
+    links: [
+      "Free 25 Members",
+      "Cultural Festivals",
+      "Indian States Coverage",
+      "Photo Storage",
+      "Family Sharing",
+      "Mobile App",
+    ],
+  },
+  support: {
+    title: "Support",
+    links: ["Help Center", "Getting Started", "Video Tutorials", "FAQ", "Contact Us", "Account Help"],
+  },
   company: {
     title: "Company",
     links: [
@@ -24,87 +39,152 @@ const footerSections = {
       { label: "Contact", url: "#" },
     ],
   },
-  help: {
-    title: "Support",
-    links: ["Help Center", "Getting Started", "Video Tutorials", "FAQ", "Contact Us"],
-  },
 };
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#1a0f12] text-white/80 border-t border-white/10 pt-20 pb-10">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="grid lg:grid-cols-12 gap-12 mb-16">
-          {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#64303A] to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-900/20">
+    <footer className="bg-kutumba-light-teal/10 border-t">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16">
+        <div className="grid lg:grid-cols-5 gap-8 mb-12">
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-gradient-kutumba rounded-lg flex items-center justify-center">
                 <TreePine className="h-5 w-5 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white tracking-tight">KutumbaTree</span>
+              <span className="text-xl font-bold">KutumbaTree</span>
             </div>
-
-            <p className="text-white/60 leading-relaxed max-w-sm">
-              Helping Indian families preserve their rich heritage, connect with relatives, and pass down their legacy to future generations.
+            <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
+              Build your Indian family tree with cultural traditions and connect with relatives across India&apos;s 28
+              states and union territories.
             </p>
 
-            <div className="flex gap-4 pt-2">
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#64303A] hover:text-white transition-all">
-                <Facebook className="h-4 w-4" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#64303A] hover:text-white transition-all">
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#64303A] hover:text-white transition-all">
-                <Instagram className="h-4 w-4" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#64303A] hover:text-white transition-all">
-                <Linkedin className="h-4 w-4" />
-              </a>
+            <div className="flex flex-wrap gap-2 mb-6">
+              <span className="text-lg" title="India">
+                🇮🇳
+              </span>
+              <span className="text-sm text-muted-foreground">28 States & UTs Covered</span>
             </div>
           </div>
 
-          {/* Links Columns */}
-          <div className="lg:col-span-8 grid md:grid-cols-3 gap-8">
-            {Object.entries(footerSections).map(([key, section]) => (
-              <div key={key}>
-                <h3 className="text-white font-bold text-lg mb-6">{section.title}</h3>
-                <ul className="space-y-4">
-                  {section.links.map((link, i) => {
-                    const label = typeof link === 'string' ? link : link.label;
-                    const href = typeof link === 'string' ? '#' : link.url;
-                    return (
-                      <li key={i}>
-                        <Link href={href} className="text-white/60 hover:text-amber-400 transition-colors text-sm font-medium">
-                          {label}
+          {Object.entries(footerSections).map(([key, section]) => (
+            <div key={key}>
+              <h3 className="font-semibold mb-4">{section.title}</h3>
+              <ul className="space-y-3">
+                {section.links.map((link) => {
+                  const isLinkObject = typeof link === "object";
+                  const linkLabel = isLinkObject ? link.label : link;
+                  const linkUrl = isLinkObject ? link.url : "#";
+                  const isInternalLink = linkUrl.startsWith("/") || linkUrl.startsWith("#");
+
+                  return (
+                    <li key={linkLabel}>
+                      {isInternalLink ? (
+                        <Link
+                          href={linkUrl}
+                          className="text-muted-foreground hover:text-kutumba-maroon transition-colors text-sm"
+                        >
+                          {linkLabel}
                         </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
+                      ) : (
+                        <a
+                          href={linkUrl}
+                          className="text-muted-foreground hover:text-kutumba-maroon transition-colors text-sm"
+                        >
+                          {linkLabel}
+                        </a>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 py-8 border-t border-border">
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Mail className="h-4 w-4 text-kutumba-teal" />
+              Email Support
+            </h4>
+            <p className="text-sm text-muted-foreground mb-2">General inquiries:</p>
+            <a
+              href="mailto:hello@kutumbatree.com"
+              className="text-kutumba-maroon hover:text-kutumba-gold transition-colors"
+            >
+              hello@kutumbatree.com
+            </a>
+            <p className="text-sm text-muted-foreground mb-1 mt-3">Technical support:</p>
+            <a
+              href="mailto:support@kutumbatree.com"
+              className="text-kutumba-maroon hover:text-kutumba-gold transition-colors"
+            >
+              support@kutumbatree.com
+            </a>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Phone className="h-4 w-4 text-kutumba-teal" />
+              Support Hours
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="text-muted-foreground">Monday - Friday:</span>
+                <span className="ml-2">9 AM - 6 PM IST</span>
               </div>
-            ))}
+              <div>
+                <span className="text-muted-foreground">Saturday:</span>
+                <span className="ml-2">10 AM - 4 PM IST</span>
+              </div>
+              <p className="text-muted-foreground mt-3">Response time: Within 24 hours</p>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Globe className="h-4 w-4 text-kutumba-teal" />
+              Available Languages
+            </h4>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <span className="text-muted-foreground">English</span>
+              <span className="text-muted-foreground">हिंदी</span>
+              <span className="text-muted-foreground">ગુજરાતી</span>
+              <span className="text-muted-foreground">தமிழ்</span>
+              <span className="text-muted-foreground">বাংলা</span>
+              <span className="text-muted-foreground">ಕನ್ನಡ</span>
+              <span className="text-muted-foreground">മലയാളം</span>
+              <span className="text-muted-foreground">मराठी</span>
+              <span className="text-muted-foreground">తెలుగు</span>
+              <span className="text-muted-foreground">कोंकणी</span>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-sm text-white/50 flex flex-col sm:flex-row items-center gap-4">
-            <span>© {currentYear} KutumbaTree Inc.</span>
-            <span className="hidden sm:inline">•</span>
-            <span>Made with <Heart className="h-3 w-3 inline text-rose-500 mx-1" /> in India</span>
+        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-4 mb-4 md:mb-0">
+            <span>© {currentYear} KutumbaTree. All rights reserved.</span>
+            <span>•</span>
+            <a href="#" className="hover:text-kutumba-maroon transition-colors">
+              Privacy
+            </a>
+            <span>•</span>
+            <a href="#" className="hover:text-kutumba-maroon transition-colors">
+              Terms
+            </a>
+            <span>•</span>
+            <a href="#" className="hover:text-kutumba-maroon transition-colors">
+              Security
+            </a>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-sm">
-            <div className="flex items-center gap-2 text-white/70 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-              <Globe className="h-4 w-4" />
-              <span>English (US)</span>
-            </div>
-            <div className="hidden flex items-center gap-2 text-white/70">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span>All Systems Operational</span>
+          <div className="flex items-center gap-2">
+            <span>Built for Indian families</span>
+            <div className="flex items-center gap-2 px-2 py-1 bg-accent rounded">
+              <div className="w-2 h-2 bg-kutumba-green rounded-full"></div>
+              <span className="text-xs font-medium">🇮🇳 India</span>
             </div>
           </div>
         </div>
