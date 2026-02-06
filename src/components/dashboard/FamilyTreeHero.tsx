@@ -8,14 +8,18 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { calculateGenerations } from '@/utils/treeUtils';
+
 interface FamilyTreeHeroProps {
   familyTree: any;
   familyMembers: any[];
+  relationships: any[];
   loading: boolean;
   onCreateTree: () => void;
 }
 
-const FamilyTreeHero = ({ familyTree, familyMembers, loading, onCreateTree }: FamilyTreeHeroProps) => {
+const FamilyTreeHero = ({ familyTree, familyMembers, relationships, loading, onCreateTree }: FamilyTreeHeroProps) => {
+  const generationCount = calculateGenerations(familyMembers, relationships || []);
   if (loading) {
     return (
       <div className="w-full h-64 rounded-2xl bg-gray-100 animate-pulse border border-gray-200" />
@@ -77,7 +81,7 @@ const FamilyTreeHero = ({ familyTree, familyMembers, loading, onCreateTree }: Fa
                     <GitFork className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{Math.ceil(familyMembers.length / 3) + 1}</div>
+                    <div className="text-2xl font-bold">{generationCount}</div>
                     <div className="text-xs text-blue-200 font-medium">Generations</div>
                   </div>
                 </div>

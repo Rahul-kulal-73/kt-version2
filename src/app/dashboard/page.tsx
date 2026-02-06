@@ -42,14 +42,18 @@ const Dashboard = () => {
     fetchTrees();
   }, [user]);
 
+  const [relationships, setRelationships] = useState<any[]>([]);
+
   useEffect(() => {
-    const fetchMembers = async () => {
+    const fetchTreeData = async () => {
       if (activeTree?.id) {
         try {
-          const res = await fetch(`/api/members?treeId=${activeTree.id}`);
+          const res = await fetch(`/api/trees/${activeTree.id}`);
           if (res.ok) {
             const data = await res.json();
-            const mapped = data.map((m: any) => ({
+
+            // Map Members
+            const mappedMembers = data.members.map((m: any) => ({
               id: m._id,
               first_name: m.first_name,
               last_name: m.last_name,
@@ -59,16 +63,27 @@ const Dashboard = () => {
               photo_url: m.photo_url,
               is_root: m.is_root
             }));
-            setFamilyMembers(mapped);
+            setFamilyMembers(mappedMembers);
+
+            // Map Relationships
+            const mappedRelationships = data.relationships.map((r: any) => ({
+              id: r._id,
+              person1_id: r.person1_id,
+              person2_id: r.person2_id,
+              relationship_type: r.relationship_type
+            }));
+            setRelationships(mappedRelationships);
+
           }
         } catch (error) {
-          console.error('Failed to fetch members', error);
+          console.error('Failed to fetch tree data', error);
         }
       } else {
         setFamilyMembers([]);
+        setRelationships([]);
       }
     };
-    fetchMembers();
+    fetchTreeData();
   }, [activeTree]);
 
   const handleCreateTree = async () => {
@@ -110,6 +125,7 @@ const Dashboard = () => {
           <LeftSection
             familyTree={activeTree}
             familyMembers={familyMembers}
+            relationships={relationships}
             loading={loading}
             onCreateTree={handleCreateTree}
             user={user}
