@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Relationship from '@/models/Relationship';
+import { validateNewRelationship } from '@/lib/validation';
 
 export async function POST(request: Request) {
     try {
@@ -20,6 +21,18 @@ export async function POST(request: Request) {
 
         if (existing) {
             return NextResponse.json({ message: 'Relationship already exists' }, { status: 409 });
+        }
+
+        // Validate Relationship Rules (Age, Sibling Gap)
+        const validation = await validateNewRelationship(
+            body.tree_id,
+            body.person1_id,
+            body.person2_id,
+            body.relationship_type
+        );
+
+        if (!validation.valid) {
+            return NextResponse.json({ message: validation.message }, { status: 400 });
         }
 
         const newRel = await Relationship.create(body);

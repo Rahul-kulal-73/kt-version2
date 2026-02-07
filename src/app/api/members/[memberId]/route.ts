@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Member from '@/models/Member';
 import Relationship from '@/models/Relationship';
+import { validateMemberUpdate } from '@/lib/validation';
 
 export async function PUT(
     request: NextRequest,
@@ -12,6 +13,18 @@ export async function PUT(
         const body = await request.json();
 
         await connectToDatabase();
+        // Validate DOB Update if present
+        if (body.birth_date) {
+            const validation = await validateMemberUpdate(
+                memberId,
+                body.tree_id,
+                body.birth_date
+            );
+            if (!validation.valid) {
+                return NextResponse.json({ message: validation.message }, { status: 400 });
+            }
+        }
+
         const updatedMember = await Member.findByIdAndUpdate(memberId, body, { new: true });
 
         if (!updatedMember) {

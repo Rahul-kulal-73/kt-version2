@@ -18,10 +18,19 @@ export async function GET() {
             );
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
-        if (!decoded.userId) {
+        let decoded;
+        try {
+            decoded = jwt.verify(token, JWT_SECRET) as any;
+        } catch (e) {
             return NextResponse.json(
                 { message: 'Invalid token' },
+                { status: 401 }
+            );
+        }
+
+        if (!decoded?.userId) {
+            return NextResponse.json(
+                { message: 'Invalid token payload' },
                 { status: 401 }
             );
         }
