@@ -279,8 +279,8 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
 
         if (isMobile) {
             // Mobile: Zoom out to see more context
-            targetZoom = 0.34;
-            setZoom(0.34);
+            targetZoom = 0.5;
+            setZoom(0.5);
         } else {
             // Desktop: Reset to 100%
             targetZoom = 1;
