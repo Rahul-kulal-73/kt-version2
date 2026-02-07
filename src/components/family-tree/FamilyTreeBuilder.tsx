@@ -30,7 +30,7 @@ import { useFamilyTree, FamilyMember } from '@/components/hooks/useFamilyTree';
 import { TreeVisualization, TreeVisualizationHandle } from './TreeVisualization';
 import { MemberDetailPanel } from './MemberDetailPanel';
 import { AddRelationshipDialog } from './AddRelationshipDialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -316,9 +316,9 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                 divorce_date: '',
             });
             toast.success('Family member added successfully!');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to add family member:', error);
-            toast.error('Failed to add family member');
+            toast.error(error.message || 'Failed to add family member');
         } finally {
             setIsCreatingMember(false);
         }
@@ -996,6 +996,9 @@ const FamilyTreeBuilder = ({ treeId }: { treeId: string }) => {
                 <DialogContent className="max-w-md w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-base sm:text-lg">{getAddDialogTitle()}</DialogTitle>
+                        <DialogDescription>
+                            Enter the details below to add a new family member to your tree.
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 sm:space-y-4 text-sm sm:text-base">
 

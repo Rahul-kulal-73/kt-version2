@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -56,7 +56,7 @@ export const AddRelationshipDialog: React.FC<AddRelationshipDialogProps> = ({
         if (relationshipData.relationship_type === 'spouse') {
             const person1 = familyMembers.find(m => m.id === relationshipData.person1_id);
             const person2 = familyMembers.find(m => m.id === relationshipData.person2_id);
-            
+
             if (person1?.gender && person2?.gender && person1.gender === person2.gender) {
                 toast.error('Both parents cannot be of the same gender');
                 return;
@@ -86,8 +86,9 @@ export const AddRelationshipDialog: React.FC<AddRelationshipDialogProps> = ({
             });
 
             onOpenChange(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to add relationship:', error);
+            toast.error(error.message || 'Failed to add relationship');
         } finally {
             setIsSubmitting(false);
         }
@@ -100,6 +101,9 @@ export const AddRelationshipDialog: React.FC<AddRelationshipDialogProps> = ({
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Add Family Relationship</DialogTitle>
+                    <DialogDescription>
+                        Select two family members to create a relationship between them.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">

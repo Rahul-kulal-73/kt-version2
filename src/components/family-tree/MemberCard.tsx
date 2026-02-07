@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, Network, Crown } from 'lucide-react';
+import { Pencil, Network, Crown, Ribbon } from 'lucide-react';
 import { FamilyMember } from '@/components/hooks/useFamilyTree';
 import styles from './family-tree.module.css';
 
@@ -61,7 +61,9 @@ export const MemberCard: React.FC<MemberCardProps> = ({
             }}
             style={{
                 // Optional: selection highlight could be a glow instead of border change to preserve gender color
-                boxShadow: isSelected ? '0 0 0 3px rgba(66, 153, 225, 0.5)' : undefined
+                boxShadow: isSelected ? '0 0 0 3px rgba(66, 153, 225, 0.5)' : undefined,
+                position: 'relative',
+                overflow: 'hidden',
             }}
         >
             {/* Network Icon for "View Family" */}
@@ -79,9 +81,29 @@ export const MemberCard: React.FC<MemberCardProps> = ({
                 </button>
             )}
 
+            {/* Deceased Ribbon Icon */}
+            {isDeceased && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: '4px',
+                        right: '4px',
+                        zIndex: 11, // Above background, below actions
+                        color: '#000000', // Black
+                        filter: 'drop-shadow(0px 1px 1px rgba(255,255,255,0.8))' // Minimal highlight for contrast
+                    }}
+                    title={`Deceased: ${member.death_date ? new Date(member.death_date).getFullYear() : 'Unknown'}`}
+                >
+                    <Ribbon size={16} fill="currentColor" />
+                </div>
+            )}
+
             {/* Avatar Wrapper */}
             <div style={{ position: 'relative' }}>
-                <div className={styles.avatar}>
+                <div
+                    className={styles.avatar}
+                    style={isDeceased ? { filter: 'grayscale(100%)', opacity: 0.9 } : undefined}
+                >
                     {member.photo_url ? (
                         <img src={member.photo_url} alt={member.first_name} />
                     ) : (
@@ -90,7 +112,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
                 </div>
                 {member.is_root && (
                     <div
-                        className="absolute -top-2 left-1/2 -translate-x-1/5 bg-yellow-400 text-yellow-900 rounded-full p-1 shadow-sm border-[1.5px] border-white z-20 flex items-center justify-center"
+                        className="absolute -top-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 rounded-full p-1 shadow-sm border-[1.5px] border-white z-20 flex items-center justify-center"
                         title="Tree Owner"
                         style={{ width: '20px', height: '20px' }}
                     >

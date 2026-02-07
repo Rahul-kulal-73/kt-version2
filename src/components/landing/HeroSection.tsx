@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check } from "lucide-react";
 
 const languages = ["Hindi", "English", "Gujarati", "Tamil", "Bengali"];
 
@@ -56,15 +57,12 @@ export default function HeroSection() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <span className="bg-kutumba-green/10 text-kutumba-green border border-kutumba-green/30 px-3 py-1 rounded-full text-sm font-medium">
-              ✓ 75 Free Members
-            </span>
-            <span className="bg-kutumba-teal/10 text-kutumba-teal border border-kutumba-teal/30 px-3 py-1 rounded-full text-sm font-medium">
-              ✓ 28 Indian States
-            </span>
-            <span className="bg-kutumba-gold/10 text-kutumba-gold border border-kutumba-gold/30 px-3 py-1 rounded-full text-sm font-medium">
-              ✓ Cultural Integration
+
+
+          <div className="flex flex-wrap gap-3 pb-6">
+            <span className="flex items-center gap-1.5 bg-white/60 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-medium border border-white/50 shadow-sm text-kutumba-teal">
+              <Check size={14} strokeWidth={3} className="text-kutumba-green" />
+              75 Free Members
             </span>
           </div>
 
@@ -83,7 +81,7 @@ export default function HeroSection() {
             </Link>
           </div>
 
-          <div className="pt-4">
+          {/* <div className="pt-4">
             <p className="text-kutumba-muted mb-3">Available in 10 Indian languages</p>
             <div className="flex flex-wrap gap-2">
               {languages.map((lang) => (
@@ -96,7 +94,7 @@ export default function HeroSection() {
               ))}
               <span className="text-sm text-kutumba-muted">+5 more</span>
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="lg:justify-self-end w-full max-w-md">

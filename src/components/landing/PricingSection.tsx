@@ -181,11 +181,7 @@ export default function PricingSection() {
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <p className="text-sm text-kutumba-muted">
-              ✓ 30-day free trial • ✓ Cancel anytime • ✓ Data export guarantee
-            </p>
-          </div>
+
         </div>
       </div>
     </section>

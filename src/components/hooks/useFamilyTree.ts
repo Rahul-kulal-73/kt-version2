@@ -99,7 +99,7 @@ export const useFamilyTree = (treeId: string) => {
             return newMember;
         } catch (error) {
             console.error(error);
-            toast.error('Failed to add member');
+            // toast.error('Failed to add member');
             throw error;
         }
     }, [treeId]);
@@ -160,10 +160,11 @@ export const useFamilyTree = (treeId: string) => {
 
             if (!res.ok) {
                 if (res.status === 409) {
-                    console.warn('Relationship already exists on server');
+                    toast.warning('Relationship already exists');
                     return;
                 }
-                throw new Error('Failed to add relationship');
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'Failed to add relationship');
             }
 
             const newRelData = await res.json();
@@ -176,9 +177,11 @@ export const useFamilyTree = (treeId: string) => {
                 divorce_date: newRelData.divorce_date ? newRelData.divorce_date.split('T')[0] : undefined
             };
             setRelationships((prev) => [...prev, newRelationship]);
-        } catch (error) {
+            toast.success('Relationship added successfully');
+        } catch (error: any) {
             console.error(error);
-            toast.error('Failed to add relationship');
+            // toast.error(error.message || 'Failed to add relationship');
+            throw error;
         }
     }, [treeId, relationships]);
 
@@ -199,11 +202,11 @@ export const useFamilyTree = (treeId: string) => {
             if (!res.ok) throw new Error('Failed to update relationship');
 
             const updatedRel = await res.json();
-             setRelationships(prev => prev.map(r => r.id === id ? {
+            setRelationships(prev => prev.map(r => r.id === id ? {
                 ...r,
                 ...updatedRel,
-                 marriage_date: updatedRel.marriage_date ? updatedRel.marriage_date.split('T')[0] : undefined,
-                 divorce_date: updatedRel.divorce_date ? updatedRel.divorce_date.split('T')[0] : undefined
+                marriage_date: updatedRel.marriage_date ? updatedRel.marriage_date.split('T')[0] : undefined,
+                divorce_date: updatedRel.divorce_date ? updatedRel.divorce_date.split('T')[0] : undefined
             } : r));
 
         } catch (error) {

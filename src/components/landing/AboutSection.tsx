@@ -21,11 +21,7 @@ export default function AboutSection() {
               <p className="text-2xl font-bold text-kutumba-teal select-none blur-sm">200+</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3 text-sm text-kutumba-muted">
-            <span className="px-3 py-1 rounded-full bg-white border border-kutumba-border">Regional Languages</span>
-            <span className="px-3 py-1 rounded-full bg-white border border-kutumba-border">Festival Reminders</span>
-            <span className="px-3 py-1 rounded-full bg-white border border-kutumba-border">Secure Sharing</span>
-          </div>
+
         </div>
 
         <div className="relative w-full h-90 rounded-2xl overflow-hidden shadow-kutumba border border-kutumba-border bg-white">
