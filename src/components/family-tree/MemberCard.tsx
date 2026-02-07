@@ -61,9 +61,28 @@ export const MemberCard: React.FC<MemberCardProps> = ({
             }}
             style={{
                 // Optional: selection highlight could be a glow instead of border change to preserve gender color
-                boxShadow: isSelected ? '0 0 0 3px rgba(66, 153, 225, 0.5)' : undefined
+                boxShadow: isSelected ? '0 0 0 3px rgba(66, 153, 225, 0.5)' : undefined,
+                position: 'relative',
+                overflow: 'hidden'
             }}
         >
+            {/* Deceased Ribbon */}
+            {isDeceased && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: '-15px',
+                        right: '-15px',
+                        backgroundColor: '#374151', // gray-700
+                        height: '30px',
+                        width: '60px',
+                        transform: 'rotate(45deg)',
+                        zIndex: 10,
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                    }}
+                    title="Deceased"
+                />
+            )}
             {/* Network Icon for "View Family" */}
             {hasHiddenFamily && !isRoot && (
                 <button

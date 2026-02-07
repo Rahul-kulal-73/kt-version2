@@ -95,6 +95,16 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           }}
         />
 
+        {/* Deceased Ribbon (SVG) */}
+        {isDeceased && (
+          <path
+            d={`M ${x + cardWidth - 30} ${y} L ${x + cardWidth} ${y} L ${x + cardWidth} ${y + 30} Z`}
+            fill="#374151"
+            opacity={0.8}
+            style={{ pointerEvents: 'none' }}
+          />
+        )}
+
         {/* Gender indicator dot */}
         <circle
           cx={x + cardWidth - 12}
@@ -216,6 +226,16 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
               opacity: 0.9,
             }}
           />
+
+          {/* Deceased Ribbon for Spouse */}
+          {node.spouse.death_date && (
+            <path
+              d={`M ${x + spouseOffsetX + cardWidth - 30} ${y} L ${x + spouseOffsetX + cardWidth} ${y} L ${x + spouseOffsetX + cardWidth} ${y + 30} Z`}
+              fill="#374151"
+              opacity={0.8}
+              style={{ pointerEvents: 'none' }}
+            />
+          )}
 
           {/* Gender indicator */}
           <circle

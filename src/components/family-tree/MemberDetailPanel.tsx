@@ -159,11 +159,26 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
                     {!isEditing && (
                         <div className="text-center">
                             <div className={cn(
-                                "w-24 h-24 mx-auto rounded-full flex items-center justify-center text-2xl font-bold mb-4",
+                                "w-24 h-24 mx-auto rounded-full flex items-center justify-center text-2xl font-bold mb-4 relative overflow-hidden",
                                 member.gender === 'male' || member.gender === 'Male' ? "bg-blue-100 text-blue-600" :
                                     member.gender === 'female' || member.gender === 'Female' ? "bg-pink-100 text-pink-600" :
                                         "bg-muted text-muted-foreground"
                             )}>
+                                {isDeceased && (
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            top: '8px',
+                                            right: '-28px',
+                                            backgroundColor: '#374151',
+                                            height: '20px',
+                                            width: '80px',
+                                            transform: 'rotate(45deg)',
+                                            zIndex: 10,
+                                        }}
+                                        title="Deceased"
+                                    />
+                                )}
                                 {member.photo_url ? (
                                     <img
                                         src={member.photo_url}
