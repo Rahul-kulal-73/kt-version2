@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "KutumbaTree is a web-based genealogy platform focused on Indian families.",
 };
 
+import { FeedbackModal } from "@/components/tree/FeedbackModal";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -32,6 +34,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
+          <FeedbackModal />
           <Toaster richColors position="top-right" />
         </AuthProvider>
       </body>

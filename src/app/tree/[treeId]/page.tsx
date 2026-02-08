@@ -1,5 +1,6 @@
 import FamilyTreeBuilder from '@/components/family-tree/FamilyTreeBuilder';
 
+
 interface PageProps {
     params: Promise<{
         treeId: string;
@@ -9,5 +10,9 @@ interface PageProps {
 export default async function TreePage({ params }: PageProps) {
     const { treeId } = await params;
 
-    return <FamilyTreeBuilder treeId={treeId} />;
+    return (
+        <>
+            <FamilyTreeBuilder treeId={treeId} />
+        </>
+    );
 }
