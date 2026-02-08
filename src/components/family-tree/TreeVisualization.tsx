@@ -815,7 +815,7 @@ export const TreeVisualization = React.forwardRef<TreeVisualizationHandle, TreeV
                     <Button
                         variant="destructive"
                         size="sm"
-                        className="shadow-md gap-2 hidden"
+                        className="shadow-md gap-2"
                         onClick={() => setShowOrphans(!showOrphans)}
                     >
                         <AlertTriangle className="h-4 w-4" />
