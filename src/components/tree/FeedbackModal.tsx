@@ -7,7 +7,13 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 type Sentiment = 'Proud' | 'Emotional' | 'Neutral' | 'Confused' | 'Frustrated';
 
@@ -94,23 +100,19 @@ export function FeedbackModal() {
   };
 
   // DEBUGGING: Using raw HTML to verify visibility
-  if (!open || !user) return null;
+  if (!user) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md m-4 relative">
-        <button
-          onClick={() => setOpen(false)}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        <h2 className="text-xl font-bold mb-2 text-center">Your experience matters</h2>
-        <p className="text-center text-gray-600 mb-6">
-          How did building this family tree make you feel?
-        </p>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-center">Your experience matters</DialogTitle>
+          <DialogDescription className="text-center text-gray-600">
+            How did building this family tree make you feel?
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="flex flex-wrap gap-2 justify-center mb-6">
+        <div className="flex flex-wrap gap-2 justify-center mb-6 mt-4">
           {sentiments.map((s) => (
             <button
               key={s.value}
@@ -158,7 +160,7 @@ export function FeedbackModal() {
             {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
